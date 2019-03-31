@@ -1,0 +1,9 @@
+(load "mal/interpreter.mal")
+
+(define mal::repl
+  (lambda ()
+	(do (prin "imal> ")
+	    (! aif (getline)
+		   (do (print (mal::eval (mal::readtop it) (environment)))
+			 (mal::repl))
+		   nil)))) ; TODO

@@ -1,0 +1,854 @@
+(load "mal/derxi.mal")
+
+(define check
+  (lambda (code succ)
+	(! let ((result (mal::eval (mal::readtop code) (environment))))
+	   (do (print "CHECK: " code " -> " result)
+		 (if (equal result succ) nil (throw 44 "Fail!"))))))
+
+(define echeck
+  (lambda (code ceid succ)
+	(catch (lambda (eid message)
+				 (do (print "ECHECK: " code " -> <Erro \"" message "\">")
+				   (if (and (equal ceid eid) (equal message succ))
+					 nil
+					 (throw 444 (sprint "expect code: " ceid
+										", but got code: " eid)))))
+		   (do (! let ((result (mal::eval (mal::readtop code) (environment))))
+				  (print "ECHECK: " code " -> " result))
+			   (throw 4444 "NEFail!")))))
+
+(define vcheck
+  (lambda (code succ)
+	(! let ((result ((derxi::vm code) 'run)))
+	   (do (print "VCHECK: " code " -> " result)
+		 (if (equal result succ) nil (throw 44 "Fail!"))))))
+
+(define evcheck
+  (lambda (code ceid succ)
+	(catch (lambda (eid message)
+			 (do (print "EVCHECK: " code " -> <Erro \"" message "\">")
+			   (if (and (equal ceid eid) (equal message succ))
+				 nil
+				 (throw 444 "EFail!"))))
+		   (do (! let ((result ((derxi::vm code) 'run)))
+				  (print "EVCHECK: " code " -> " result))
+			 (throw 4444 "NEFail!")))))
+
+
+(check "" nil)
+(check "nil" nil)
+(check "()" nil)
+(check "1;2" 1)
+(check "1 'e ; 2" 'e)
+(check "(cons 1 2)" '(1 . 2))
+(check "(car (cdr (cons 1 (cons 2 3))))" 2)
+(check "(car nil)" nil)
+(check "(cdr nil)" nil)
+(check "(atom 1)" t)
+(check "(atom nil)" t)
+(check "(atom (cons 1 2))" nil)
+(check "(atom [1 2 3])" t)
+(check "(eq 'a 'a)" t)
+(check "(eq 'a 'b)" nil)
+(check "(eq cons cons)" t)
+(check "(eq cons 'cons)" nil)
+(check "(eq (cons 1 2) (cons 1 2))" nil)
+(check "(eq 'a (car (cons 'a 'd)))" t)
+(check "(equal (cons 1 2) (cons 1 2))" t)
+(check "(equal (cons 3 2) (cons 1 2))" nil)
+(check "(equal 1339 1339)" t)
+(check "(equal 3 1)" nil)
+(check "(equal 1339 (cons nil 44))" nil)
+(check "(equal (cons nil 44) nil)" nil)
+(check "(list 5 4 3 2 1)" '(5 4 3 2 1))
+(check "(rplaca (cons nil 44) 34)" '(34 . 44))
+(check "(rplacd (cons 44 55) (cons 3 nil))" '(44 3))
+(check "(nconc (list 1 2 3) (list 4 5))" '(1 2 3 4 5))
+(check "(/ (+ 71 55) (- (* 2 3) 3))" 42)
+(check "(/ 3 2)" 1)
+(check "(/ 3 2.0)" 1.5)
+(check "(% 9 2)" 1)
+(check "(+ 1 2 (- 10 3 4) 4 (/ 30 2 4) (* 2 2 2))" 21)
+(check "(< 1 2 4)" t)
+(check "(< 3 2 3)" nil)
+(check "(> 3 2 1)" t)
+(check "(> 3 5 1)" nil)
+(check "(if nil 40 (if t 42 41))" 42)
+(check "(if 0 1 2)" 1)
+(check "(if \"\" 1 2)" 1)
+(check "(if () 1 2)" 2)
+(check "(if [] 1 2)" 1)
+(check "(quote sym)" 'sym)
+(check "(quote (1 a 2 b))" '(1 a 2 b))
+(check "((lambda (n) (+ n 1)) 3)" 4)
+(check "(! (lambda (a op b) (list op a b)) 1 + 2)" 3)
+(check "(define foo 42) foo" 42)
+(check "(define bar 32) (setq bar 333) bar" 333)
+(check "(((lambda (fib) (do (setq fib (lambda (n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2)))))) fib)) nil) 10)" 89)
+(check "(((lambda (fib) (do (setq fib (lambda (n p1 p2) (if (< n 2) p1 (fib (- n 1) (+ p1 p2) p1)))) fib)) nil) 45 1 1)" 1836311903)
+(check "(define hello \")[e\\\\\\\\o\\\" Wor)d;\") hello" ")[e\\\\o\" Wor)d;")
+(check "(vect 1 (+ 1 1) 3)" [1 2 3])
+(check "[]" [])
+(check "[\"abc\" 42 (+ 1 1) () [1 2] 'non]" ["abc" 42 2 nil [1 2] 'non])
+(check "(queue)" (queue))
+(check "(queue 1 2 3)" (queue 1 2 3))
+(check "(pushqueue (pushqueue (pushqueue (queue) 5) 1) 0)"
+	   (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))
+(check "(popqueue (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))" 5)
+(check "(to-list \"hello\")" '(104 101 108 108 111))
+(check "(to-list 'hello)" '(104 101 108 108 111))
+(check "(to-list [1 2 3 4])" '(1 2 3 4))
+(check "(define queu (queue)) (pushqueue queu 1) (pushqueue queu 2)
+	   (pushqueue queu 3) (pushqueue queu 4) (to-list queu)" '(1 2 3 4))
+(check "(to-list nil)" nil)
+(check "(to-vect (list 1 2 3 4))" [1 2 3 4])
+(check "(to-vect \"hello\")" [104 101 108 108 111])
+(check "(to-vect 'hello)" [104 101 108 108 111])
+(check "(define queu (queue)) (pushqueue queu 1) (pushqueue queu 2)
+	   (pushqueue queu 3) (pushqueue queu 4) (to-vect queu)" [1 2 3 4])
+(check "(to-vect nil)" [])
+(check "(to-queue (list 1 2 3 4))" (queue 1 2 3 4))
+(check "(to-queue \"hello\")" (queue 104 101 108 108 111))
+(check "(to-queue 'hello)" (queue 104 101 108 108 111))
+(check "(to-queue [1 2 3 4])" (queue 1 2 3 4))
+(check "(to-queue nil)" (queue))
+(check "(symbol '(104 101 108 108 111))" 'hello)
+(check "(symbol \"abcd\")" 'abcd)
+(check "(symbol [104 101 108 108 111])" 'hello)
+(check "(symbol (pushqueue (pushqueue (pushqueue (queue) 97) 98) 99))" 'abc)
+(check "(sprint \"a\" 1 (cons 1 2))" "a1(1 . 2)")
+(check "`(1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10)"
+	   '(1 2 3 4 5 6 7 8 9 10))
+(check "'(1 2 3 . 4)" '(1 2 3 . 4))
+(check  "`',(car '(a . d))" '(quote a))
+(check "((lambda (head . rest) rest) 1 2 3 4)" '(2 3 4))
+(check "((lambda all all) 1 2 3 4)" '(1 2 3 4))
+(check "((lambda ((pa (pb pc) pd)) pc) (list 1 (list 2 3) 4))" 3)
+(check "(load \"mal/matrix.mal\")
+	   (matrix::determinant
+		 '((3 1 1 2 1) (5 1 3 4 1) (2 0 1 0 3) (1 3 2 1 1) (2 1 5 10 1)))" -292)
+(echeck "(throw 1 \"an error occured!\")" 1 "an error occured!")
+(echeck "(do 1 (throw 2 \"an error occured!\") 3)" 2 "an error occured!")
+(echeck "(if (throw 3 \"an error occured!\") 3 4)" 3 "an error occured!")
+(check "(if nil (throw 4 \"an error occured!\") 'safe)" 'safe)
+(echeck "(define sym (throw 4 \"an error occured!\"))" 4 "an error occured!")
+(check "(and 1 'a '(4))" '(4))
+(check "(and 1 nil '(4))" nil)
+(check "(and 1 nil (throw 1 \"E\"))" nil)
+(check "(and)" t)
+(check "(or nil () '())" nil)
+(check "(or nil 'a '(4))" 'a)
+(check "(or nil 1 (throw 1 \"E\"))" 1)
+(check "(or)" nil)
+(echeck "ffoo" mal::error::symbol "ffoo is not defined.")
+(echeck "(" mal::error::syntax "not found close parenthesis.")
+(echeck ")" mal::error::syntax "found excess close parenthesis.")
+(echeck "(to-list 3)" mal::error::type "cannot cast 3 to ConsT.")
+(echeck "(load \"not/exist/path.ext\")"
+		mal::error::file-not-found "not found file: \"not/exist/path.ext\"")
+(echeck "(load 33)" mal::error::type "cannot apply load to 33")
+(echeck "(to-vect 33)" mal::error::type "cannot cast 33 to VectT.")
+(echeck "(symbol 33)" mal::error::type "cannot cast 33 to SymbT.")
+(echeck "(to-queue 33)" mal::error::type "cannot cast 33 to QueuT.")
+(echeck "(setq ffoo 33)" mal::error::symbol "ffoo is not defined.")
+(echeck "\"" mal::error::syntax "not found close double quote.")
+(echeck "((lambda ((a . b)) a) 1)"
+		mal::error::type "cannot bind: ((a . b)) and (1)")
+(echeck "(3 1)" mal::error::un-callable "3 is not callable.")
+(echeck "(+ 3 'a)" mal::error::type "cannot add (3 a)")
+(echeck "(- () 2)" mal::error::type "cannot sub (NIL 2)")
+(echeck "(* [] 2)" mal::error::type "cannot mul ([] 2)")
+(echeck "(/ 3 \"a\")" mal::error::type "cannot div (3 \"a\")")
+(echeck "(% 3 nil)" mal::error::type "cannot mod (3 NIL)")
+(check "(empty ())" t)
+(check "(empty [])" t)
+(check "(empty (queue))" t)
+(check "(empty \"\")" t)
+(check "(empty '(1))" nil)
+(check "(empty [1])" nil)
+(check "(empty (pushqueue (queue) 1))" nil)
+(check "(empty \"1\")" nil)
+(check "(catch (lambda (id mess) (list 'trap id mess)) (do (print 1) (print 2) (throw 55 \"fail!\") (print 3) 'end))" '(trap 55 "fail!"))
+(check "(type nil)" '<nil>)
+(check "(type 1)" '<inum>)
+(check "(type (cons 1 2))" '<cons>)
+(check "(type (queue))" '<queu>)
+(check "(type [1 2])" '<vect>)
+(check "(type 'foo)" '<symb>)
+(check "(type \"bar\")" '<strn>)
+(check "(type type)" '<subr>)
+(check "(type if)" '<spfm>)
+(check "(type (lambda (baz) baz))" '<func>)
+(check "(type 1.2)" '<fnum>)
+(check "(apply + '(1 4 6 9))" 20)
+(check "(apply (lambda (a b c d) (list d b a c)) '(1 4 6 9))" '(9 4 1 6))
+(check "(define v [1 2 3]) (getat v 2)" 3)
+(check "(define v [1 2 3]) (setat v 2 44) v" [1 2 44])
+(check "(eq (getat [1 nil 3] 1) nil)" t)
+(check "(if (getat [1 nil 3] 1) 1 2)" 2)
+(check "(to-list \"a\\nb\\tc\\0\")" '(97 10 98 9 99 0))
+(check "`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
+	   [1 2 3 4 5 6 7 8 9 10])
+
+(! with derxi
+   (do
+	 ; (do nil nil nil)
+	 (vcheck (list ::nil
+				   ::nil
+				   ::nil)
+			 '(nil nil nil))
+
+	 ; (do 1 2 3)
+	 (vcheck (list ::cnst 3
+				   ::cnst 2
+				   ::cnst 1)
+			 '(1 2 3))
+
+	 ; (do (if nil 1) 2 (if 1 3))
+	 (vcheck (list ::nil
+				   ::cond 2
+				   ::cnst 1
+				   ::cnst 2
+				   ::cnst 1
+				   ::cond 2
+				   ::cnst 3)
+			 '(3 2))
+
+	 ; (do nil (jump 3) nil nil nil nil)
+	 (vcheck (list ::nil
+				   ::jump 3
+				   ::nil
+				   ::nil
+				   ::nil
+				   ::nil)
+			 '(nil nil))
+
+	 ; (do (cons 40 2) (cons 9 (cons 8 (cons 7 nil))))
+	 (vcheck (list ::cnst 40
+				   ::cnst 2
+				   ::cons
+				   ::cnst 9
+				   ::cnst 8
+				   ::cnst 7
+				   ::nil
+				   ::cons
+				   ::cons
+				   ::cons)
+			 '((9 8 7) (40 . 2)))
+
+	 ; (do (car (cons 40 2)) (cdr (cons 40 2)))
+	 (vcheck (list ::cnst 40
+				   ::cnst 2
+				   ::cons
+				   ::car
+				   ::cnst 40
+				   ::cnst 2
+				   ::cons
+				   ::cdr)
+			 '(2 40))
+
+	 ; (do (list 2 3 5 7))
+	 (vcheck (list ::cnst 2
+				   ::cnst 3
+				   ::cnst 5
+				   ::cnst 7
+				   ::list 4)
+			 '((2 3 5 7)))
+
+	 ; (do (vect 1 2 4 9))
+	 (vcheck (list ::cnst 1
+				   ::cnst 2
+				   ::cnst 4
+				   ::cnst 9
+				   ::vect 4)
+			 (list [1 2 4 9]))
+
+	 ; (do 'hello)
+	 (vcheck (list ::cnst 104
+				   ::cnst 101
+				   ::cnst 108
+				   ::cnst 108
+				   ::cnst 111
+				   ::vect 5
+				   ::symb)
+			 '(hello))
+
+	 ; (do (throw 55 "error"))
+	 (evcheck (list ::cnst 101
+					::cnst 114
+					::cnst 114
+					::cnst 111
+					::cnst 114
+					::vect 5
+					::strn
+					::erro 55)
+			  55 "error")
+
+	 ; (do (lambda (arg1) (do arg1 arg1)))
+	 (vcheck (list ::func 11
+				   ::cnst 2
+				   ::cnst 2
+				   ::push
+				   ::cnst 2
+				   ::cnst 2
+				   ::push
+				   ::retn)
+			 (list (cons '(2 2 2 2 1 2 2 2 2 1 7) '(nil))))
+
+	 ; (do ((lambda (arg1) (do arg1 arg1)) 5) nil)
+	 (vcheck (list ::func 11
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::cnst 5
+				   ::list 1
+				   ::aply
+				   ::nil)
+			 '(nil 5 5))
+
+	 ; (do (rcur (lambda (arg1) (do arg1 arg1)) 5) nil)
+	 (vcheck (list ::func 11
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::cnst 5
+				   ::list 1
+				   ::rcur
+				   ::nil)
+			 '(5 5))
+
+	 ; (do ((lambda (arg1) (arg1 42)) (lambda (arg1) (do arg1 arg1))))
+	 (vcheck (list ::func 11
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 42
+				   ::list 1
+				   ::aply
+				   ::retn
+				   ::func 11
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::list 1
+				   ::aply)
+			 '(42 42))
+
+	 ; (do ((lambda (arg1) (arg1 58 42)) (lambda (arg1 arg2) (do arg1 arg2))))
+	 (vcheck (list ::func 13
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 58
+				   ::cnst 42
+				   ::list 2
+				   ::aply
+				   ::retn
+				   ::func 11
+				   ::cnst 1
+				   ::cnst 0
+				   ::push
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::list 1
+				   ::aply)
+			 '(58 42))
+
+	 ; (do (+ 5 37) (- 58 16) (* 6 7) (/ 126 3) (% 125 83))
+	 (vcheck (list ::cnst 5
+				   ::cnst 37
+				   ::add
+				   ::cnst 58
+				   ::cnst 16
+				   ::sub
+				   ::cnst 6
+				   ::cnst 7
+				   ::mul
+				   ::cnst 126
+				   ::cnst 3
+				   ::div
+				   ::cnst 125
+				   ::cnst 83
+				   ::mod)
+			 '(42 42 42 42 42))
+
+	 ; (do (! let ((a 1) (b (cons 2 3)))
+	 ; 	   (! let ((c (cons a b)))
+	 ; 		  (do (rplacd b 4) (rplaca b 7) (setq a 5) (list c b a)))))
+	 (vcheck (list ::func 56
+				   ::func 39
+				   ::cnst 1
+				   ::cnst 1
+				   ::push
+				   ::cnst 4
+				   ::rpld
+				   ::cnst 1
+				   ::cnst 1
+				   ::push
+				   ::cnst 7
+				   ::rpla
+				   ::cnst 5
+				   ::cnst 0
+				   ::cnst 1
+				   ::setq
+				   ::cnst 0
+				   ::cnst 1
+				   ::push
+				   ::cnst 1
+				   ::cnst 1
+				   ::push
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 1
+				   ::cnst 0
+				   ::push
+				   ::cons
+				   ::list 1
+				   ::aply
+				   ::retn
+				   ::cnst 1
+				   ::cnst 2
+				   ::cnst 3
+				   ::cons
+				   ::list 2
+				   ::aply)
+			 '((1 7 . 4) (7 . 4) 5))
+
+	 ; (do (define a 42) a ((lambda (b) a) 44))
+	 (vcheck (list ::cnst 97
+				   ::vect 1
+				   ::symb
+				   ::cnst 42
+				   ::def
+				   ::cnst 97
+				   ::vect 1
+				   ::symb
+				   ::ref
+				   ::func 7
+				   ::cnst 97
+				   ::vect 1
+				   ::symb
+				   ::ref
+				   ::retn
+				   ::cnst 44
+				   ::list 1
+				   ::aply)
+			 '(42 42))
+
+	 ; (! let ((a 0))
+	 ;    (! let ((cnt (lambda () (do (setq a (+ a 1)) a))))
+	 ; 	  (do (cnt) (cnt) (cnt) (cnt) (cnt))))
+	 (vcheck (list ::func 36
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::nil
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::nil
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::nil
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::nil
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::nil
+				   ::aply
+				   ::retn
+				   ::func 22
+				   ::func 19
+				   ::cnst 0
+				   ::cnst 1
+				   ::push
+				   ::cnst 1
+				   ::add
+				   ::cnst 0
+				   ::cnst 1
+				   ::setq
+				   ::cnst 0
+				   ::cnst 1
+				   ::push
+				   ::retn
+				   ::retn
+				   ::cnst 0
+				   ::list 1
+				   ::aply
+				   ::list 1
+				   ::aply)
+			 '(5 4 3 2 1))
+
+	 ; (! letrec ((fact (lambda (n) (if (< n 2) n (* n (fact (- n 1)))))))
+	 ;    (do (fact 1) (fact 5) (fact 10)))
+	 (vcheck (list ::func 31
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 1
+				   ::list 1
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 5
+				   ::list 1
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 10
+				   ::list 1
+				   ::aply
+				   ::retn
+				   ::func 52
+				   ::func 39
+				   ::cnst 2
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::gt
+				   ::cond 6
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::cnst 0
+				   ::cnst 1
+				   ::push
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::cnst 1
+				   ::sub
+				   ::list 1
+				   ::aply
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::mul
+				   ::retn
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq
+				   ::cnst 0
+				   ::cnst 0
+				   ::push
+				   ::retn
+				   ::nil
+				   ::list 1
+				   ::aply
+				   ::list 1
+				   ::aply)
+			 '(3628800 120 1))
+
+	 ; (! letrec ((fib (lambda (n) (if (< n 2) 1 (+ (fib (- n 2)) (fib (- n 1)))))))
+	 ;    (map fib (range 0 10)))
+	 (vcheck (list ::func 87
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; map
+
+				   ::func 60
+				   ::func 47
+				   ::cnst 2
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; n
+				   ::gt
+				   ::cond 3
+				   ; then
+				   ::cnst 1
+				   ::retn
+				   ; else
+				   ::cnst 0
+				   ::cnst 1
+				   ::push ; fib
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; n
+				   ::cnst 2
+				   ::sub
+				   ::list 1
+				   ::aply
+				   ::cnst 0
+				   ::cnst 1
+				   ::push ; fib
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; n
+				   ::cnst 1
+				   ::sub
+				   ::list 1
+				   ::aply
+				   ::add
+				   ::retn
+
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq ; fib
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; fib
+				   ::retn
+
+				   ::nil
+				   ::list 1
+				   ::aply ; fib gen
+
+				   ::cnst 1
+				   ::cnst 0
+				   ::push ; range
+				   ::cnst 0
+				   ::cnst 10
+				   ::list 2
+				   ::aply ; range
+				   ::list 2
+				   ::aply ; map
+				   ::retn
+
+				   ::func 59
+				   ::func 46
+				   ::cnst 1
+				   ::cnst 0
+				   ::push ; coll
+				   ::nil
+				   ::eq
+				   ::cond 2
+				   ; then
+				   ::nil
+				   ::retn
+				   ; else
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; fn
+				   ::cnst 1
+				   ::cnst 0
+				   ::push ; coll
+				   ::car
+				   ::list 1
+				   ::aply
+				   ::cnst 0
+				   ::cnst 1
+				   ::push ; map
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; fn
+				   ::cnst 1
+				   ::cnst 0
+				   ::push ; coll
+				   ::cdr
+				   ::list 2
+				   ::aply
+				   ::cons
+				   ::retn
+
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq ; map
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; map
+				   ::retn
+
+				   ::nil
+				   ::list 1
+				   ::aply ; map gen
+
+				   ::func 56
+				   ::func 43
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; b
+				   ::cnst 1
+				   ::cnst 0
+				   ::push ; e
+				   ::equal
+				   ::cond 2
+				   ; then
+				   ::nil
+				   ::retn
+				   ; else
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; b
+				   ::cnst 0
+				   ::cnst 1
+				   ::push ; range
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; b
+				   ::cnst 1
+				   ::add
+				   ::cnst 1
+				   ::cnst 0
+				   ::push ; a
+				   ::list 2
+				   ::aply
+				   ::cons
+				   ::retn
+
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq ; range
+				   ::cnst 0
+				   ::cnst 0
+				   ::push ; range
+				   ::retn
+
+				   ::nil
+				   ::list 1
+				   ::aply ; range gen
+
+				   ::list 2
+				   ::aply)
+			 '((1 1 2 3 5 8 13 21 34 55)))
+
+	 ; (! letrec ((fib (lambda (n) (if (< n 2) 1 (+ (fib (- n 2)) (fib (- n 1)))))))
+	 ;    (map fib (range 0 10)))
+	 ; push00 version.
+	 (vcheck (list ::func 55
+				   ::push00 ; map
+
+				   ::func 36 ; fib gen
+				   ::func 27 ; fib
+				   ::cnst 2
+				   ::push00 ; n
+				   ::gt
+				   ::cond 3
+				   ; then
+				   ::cnst 1
+				   ::retn
+				   ; else
+				   ::push01 ; fib
+				   ::push00 ; n
+				   ::cnst 2
+				   ::sub
+				   ::list 1
+				   ::aply
+				   ::push01 ; fib
+				   ::push00 ; n
+				   ::cnst 1
+				   ::sub
+				   ::list 1
+				   ::aply
+				   ::add
+				   ::retn
+
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq ; fib
+				   ::push00 ; fib
+				   ::retn
+
+				   ::nil
+				   ::list 1
+				   ::aply ; fib gen
+
+				   ::push10 ; range
+				   ::cnst 0
+				   ::cnst 10
+				   ::list 2
+				   ::aply ; range
+				   ::list 2
+				   ::aply ; map
+				   ::retn
+
+				   ::func 31 ; map gen
+				   ::func 22 ; map
+				   ::push10 ; ; coll
+				   ::nil
+				   ::eq
+				   ::cond 2
+				   ; then
+				   ::nil
+				   ::retn
+				   ::push00 ; fn
+				   ::push10 ; coll
+				   ::car
+				   ::list 1
+				   ::aply
+				   ::push01 ; map
+				   ::push00 ; fn
+				   ::push10 ; coll
+				   ::cdr
+				   ::list 2
+				   ::aply
+				   ::cons
+				   ::retn
+
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq ; map
+				   ::push00 ; map
+				   ::retn
+
+				   ::nil
+				   ::list 1
+				   ::aply ; map gen
+
+				   ::func 28 ; range gen
+				   ::func 19 ; range
+				   ::push00 ; b
+				   ::push10 ; e
+				   ::equal
+				   ::cond 2
+				   ; then
+				   ::nil
+				   ::retn
+				   ; else
+				   ::push00 ; b
+				   ::push01 ; range
+				   ::push00 ; b
+				   ::cnst 1
+				   ::add
+				   ::push10 ; e
+				   ::list 2
+				   ::aply
+				   ::cons
+				   ::retn
+
+				   ::cnst 0
+				   ::cnst 0
+				   ::setq ; range
+				   ::push00 ; range
+				   ::retn
+
+				   ::nil
+				   ::list 1
+				   ::aply ; range gen
+				   ::list 2
+				   ::aply)
+			 '((1 1 2 3 5 8 13 21 34 55)))
+	 ))
+
+
+

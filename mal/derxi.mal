@@ -1,0 +1,234 @@
+(load "mal/interpreter.mal")
+
+(define derxi::vm
+  (lambda (code-)
+	(! let ((stak nil)
+			(envi (list nil))
+			(code code-)
+			(kont nil)
+			(ops nil))
+	   (do
+		   ; 38
+		   ; op_push21
+		   (! push ops (lambda () (! push stak (car (cdr (cdr (car (cdr envi))))))))
+		   ; 37
+		   ; op_push11
+		   (! push ops (lambda () (! push stak (car (cdr (car (cdr envi)))))))
+		   ; 36
+		   ; op_push01
+		   (! push ops (lambda () (! push stak (car (car (cdr envi))))))
+		   ; 35
+		   ; op_push20
+		   (! push ops (lambda () (! push stak (car (cdr (cdr (car envi)))))))
+		   ; 34
+		   ; op_push10
+		   (! push ops (lambda () (! push stak (car (cdr (car envi))))))
+		   ; 33
+		   ; op_push00
+		   (! push ops (lambda () (! push stak (car (car envi)))))
+		   ; 32
+		   ; op_ref
+		   (! push ops (lambda () (! push stak (assocdr (car (last envi))
+															 (! pop stak)))))
+		   ; 31
+		   ; op_def
+		   (! push ops (lambda () (! let* ((val (! pop stak))
+										   (sym (! pop stak))
+										   (genv (car (last envi))))
+									 (! aif (assoc genv sym)
+										(rplacd it val)
+										(rplaca (last envi)
+												(cons (cons sym val) genv))))))
+		   ; 30
+		   ; op_stat
+		   (! push ops (lambda () (! let* ((vec (! pop stak))
+										   (idx (! pop stak))
+										   (val (! pop stak)))
+									 (setat vec idx val))))
+		   ; 29
+		   ; op_gtat
+		   (! push ops (lambda () (! let* ((vec (! pop stak))
+										   (idx (! pop stak)))
+									 (! push stak (getat vec idx)))))
+		   ; 28
+		   ; op_lt
+		   (! push ops (lambda () (! push stak (> (! pop stak) (! pop stak)))))
+		   ; 27
+		   ; op_gt
+		   (! push ops (lambda () (! push stak (< (! pop stak) (! pop stak)))))
+		   ; 26
+		   ; op_equal
+		   (! push ops (lambda () (! push stak (equal (! pop stak) (! pop stak)))))
+		   ; 25
+		   ; op_eq
+		   (! push ops (lambda () (! push stak (eq (! pop stak) (! pop stak)))))
+		   ; 24
+		   ; op_rpld
+		   (! push ops (lambda () (! let* ((val (! pop stak))
+										   (c (! pop stak)))
+									 (rplacd c val))))
+		   ; 23
+		   ; op_rpla
+		   (! push ops (lambda () (! let* ((val (! pop stak))
+										   (c (! pop stak)))
+									 (rplaca c val))))
+		   ; 22
+		   ; op_mod
+		   (! push ops (lambda () (! let* ((b (! pop stak))
+										   (a (! pop stak)))
+									 (! push stak (% a b)))))
+		   ; 21
+		   ; op_div
+		   (! push ops (lambda () (! let* ((b (! pop stak))
+										   (a (! pop stak)))
+									 (! push stak (/ a b)))))
+		   ; 20
+		   ; op_mul
+		   (! push ops (lambda () (! push stak (* (! pop stak) (! pop stak)))))
+		   ; 19
+		   ; op_sub
+		   (! push ops (lambda () (! let* ((b (! pop stak))
+										   (a (! pop stak)))
+									 (! push stak (- a b)))))
+		   ; 18
+		   ; op_add
+		   (! push ops (lambda () (! push stak (+ (! pop stak) (! pop stak)))))
+		   ; 17
+		   ; op_setq
+		   (! push ops (lambda () (setnth (nth envi (! pop stak))
+										  (! pop stak) (! pop stak))))
+		   ; 16
+		   ; op_rcur
+		   (! push ops (lambda () (! let* ((args (! pop stak))
+										   (fun (! pop stak)))
+									 (do (setq code (car fun))
+									     (setq envi (cons args (cdr fun)))))))
+		   ; 15
+		   ; op_erro
+		   (! push ops (lambda () (throw (! pop code) (! pop stak))))
+		   ; 14
+		   ; op_strn
+		   (! push ops (lambda () (! push stak (string (! pop stak)))))
+		   ; 13
+		   ; op_symb
+		   (! push ops (lambda () (! push stak (symbol (! pop stak)))))
+		   ; 12
+		   ; op_vect
+		   (! push ops (lambda () (! let (((li rest) (split-idx stak (! pop code))))
+									 (do (setq stak rest)
+									     (! push stak (to-vect (reverse li)))))))
+		   ; 11
+		   ; op_list
+		   (! push ops (lambda () (! let (((li rest) (split-idx stak (! pop code))))
+									 (do (setq stak rest)
+									     (! push stak (reverse li))))))
+		   ; 10
+		   ; op_cdr
+		   (! push ops (lambda () (! push stak (cdr (! pop stak)))))
+		   ; 9
+		   ; op_car
+		   (! push ops (lambda () (! push stak (car (! pop stak)))))
+		   ; 8
+		   ; op_cons
+		   (! push ops (lambda () (! let ((d (! pop stak)) (a (! pop stak)))
+									 (! push stak (cons a d)))))
+		   ; 7
+		   ; op_retn
+		   (! push ops (lambda () (! let ((cc (! pop kont)))
+									 (do (setq code (car cc))
+									     (setq envi (cdr cc))))))
+		   ; 6
+		   ; op_aply
+		   (! push ops (lambda () (! let* ((args (! pop stak))
+										   (fun (! pop stak)))
+									 (do (! push kont (cons code envi))
+									     (setq code (car fun))
+									     (setq envi (cons args (cdr fun)))))))
+		   ; 5
+		   ; op_func
+		   (! push ops (lambda () (! let (((fn rest)
+										   (split-idx (cdr code) (! pop code))))
+									 (do (setq code rest)
+									     (! push stak (cons fn envi))))))
+		   ; 4
+		   ; op_jump
+		   (! push ops (lambda () (setq code (drop (cdr code) (! pop code)))))
+		   ; 3
+		   ; op_cond
+		   (! push ops (lambda () (if (! pop stak)
+									(! pop code)
+									(setq code (drop (cdr code) (! pop code))))))
+		   ; 2
+		   ; op_cnst
+		   (! push ops (lambda () (! push stak (! pop code))))
+		   ; 1
+		   ; op_push
+		   (! push ops (lambda () (! push stak (nth (nth envi (! pop stak))
+													(! pop stak)))))
+		   ; 0
+		   ; op_nil
+		   (! push ops (lambda () (! push stak nil)))
+		   (! letrec ((run-rec
+						(lambda ()
+						  (if code (do ((nth ops (! pop code))) (run-rec)) stak))))
+			  (lambda (command)
+				(! cond
+				   ((eq 'step command) (if code ((nth ops (! pop code))))
+									   (eq 'dump command)
+									   (sprint "stak: " stak
+											   (string (vect mal::newline))
+											   "envi: " envi
+											   (string (vect mal::newline))
+											   "code: " code
+											   (string (vect mal::newline))
+											   "kont: " kont)
+									   (eq 'run command) (run-rec)
+									   (eq 'stak command) stak
+									   (eq 'envi command) envi
+									   (eq 'code command) code
+									   (eq 'kont command) kont
+									   (eq 'ops command) ops
+									   t (throw 11
+												(sprint "unknown command: "
+														command))))))))))
+
+
+(define derxi::nil  0)
+(define derxi::push 1)
+(define derxi::cnst 2)
+(define derxi::cond 3)
+(define derxi::jump 4)
+(define derxi::func 5)
+(define derxi::aply 6)
+(define derxi::retn 7)
+(define derxi::cons 8)
+(define derxi::car  9)
+(define derxi::cdr  10)
+(define derxi::list 11)
+(define derxi::vect 12)
+(define derxi::symb 13)
+(define derxi::strn 14)
+(define derxi::erro 15)
+(define derxi::rcur 16)
+(define derxi::setq 17)
+(define derxi::add  18)
+(define derxi::sub  19)
+(define derxi::mul  20)
+(define derxi::div  21)
+(define derxi::mod  22)
+(define derxi::rpla 23)
+(define derxi::rpld 24)
+(define derxi::eq   25)
+(define derxi::equal 26)
+(define derxi::gt   27)
+(define derxi::lt   28)
+(define derxi::gtat 29)
+(define derxi::stat 30)
+(define derxi::def  31)
+(define derxi::ref  32)
+(define derxi::push00 33)
+(define derxi::push10 34)
+(define derxi::push20 35)
+(define derxi::push01 36)
+(define derxi::push11 37)
+(define derxi::push21 38)

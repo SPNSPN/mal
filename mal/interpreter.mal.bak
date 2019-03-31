@@ -1,0 +1,388 @@
+(load "mal/util.mal")
+
+(define mal::error::full-memory        0)
+(define mal::error::unknown-opcode     1)
+(define mal::error::out-of-environment 2)
+(define mal::error::type               3)
+(define mal::error::symbol             4)
+(define mal::error::syntax             5)
+(define mal::error::un-callable        6)
+(define mal::error::args-unmatch       7)
+(define mal::error::un-evaluatable     8)
+(define mal::error::file-not-found     9)
+
+(! let
+   ((clist (to-list "()'\"`,@.[]; \\\a\b\f\n\r\t\v\0")))
+   (do
+	 (define mal::o-paren   (nth clist 0))
+	 (define mal::c-paren   (nth clist 1))
+	 (define mal::s-quote   (nth clist 2))
+	 (define mal::d-quote   (nth clist 3))
+	 (define mal::b-quote   (nth clist 4))
+	 (define mal::camma     (nth clist 5))
+	 (define mal::atmark    (nth clist 6))
+	 (define mal::period    (nth clist 7))
+	 (define mal::o-bracket (nth clist 8))
+	 (define mal::c-bracket (nth clist 9))
+	 (define mal::semicolon (nth clist 10))
+	 (define mal::space     (nth clist 11))
+	 (define mal::backslash (nth clist 12))
+	 (define mal::alert     (nth clist 13))
+	 (define mal::backspace (nth clist 14))
+	 (define mal::pagefeed  (nth clist 15))
+	 (define mal::newline   (nth clist 16))
+	 (define mal::c-return  (nth clist 17))
+	 (define mal::tab       (nth clist 18))
+	 (define mal::v-tab     (nth clist 19))
+	 (define mal::eol       (nth clist 20))
+	 ))
+
+(define mal::+readmacros+ nil)
+
+(define mal::defreadmacro
+  (lambda (c body)
+	`(! push mal::+readmacros+ (cons ,c (lambda (code tree wraps buf) ,body)))))
+
+(! mal::defreadmacro mal::o-paren
+   (! let ((co (mal::find-co-paren code)))
+	  (cons (drop code (+ 1 co))
+			((lambda ((ntree nwraps nbuf))
+			   (mal::growth ntree nwraps (mal::read (take code co)) (queue)))
+			 (mal::growth-from-buf tree wraps buf)))))
+
+(! mal::defreadmacro mal::c-paren
+   (throw mal::error::syntax "found excess close parenthesis."))
+
+(! mal::defreadmacro mal::d-quote
+   (! let (((str restcode) (mal::take-string code (queue)))
+		   ((ntree nwraps nbuf) (mal::growth-from-buf tree wraps buf)))
+	  (list restcode (pushqueue ntree str) nwraps nbuf)))
+
+(! mal::defreadmacro mal::s-quote
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'quote nwraps) nbuf))
+		  (mal::growth-from-buf tree wraps buf))))
+
+(! mal::defreadmacro mal::b-quote
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'quasiquote nwraps) nbuf))
+		  (mal::growth-from-buf tree wraps buf))))
+
+(! mal::defreadmacro mal::camma
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'unquote nwraps) nbuf))
+		  (mal::growth-from-buf tree wraps buf))))
+
+(! mal::defreadmacro mal::atmark
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'splicing nwraps) nbuf))
+		  (mal::growth-from-buf tree wraps buf))))
+
+(! mal::defreadmacro mal::period
+   (if (empty buf)
+	 (! let ((ltree (to-list tree)))
+		(do (rplacd (last ltree) (car (mal::read code)))
+		    (list nil tree nil (queue)))) ; TODO queueをdequeにしてto-listの代わりにpopback、pushbackでlast要素を取得する、last要素の参照に対してrplacdすることで末尾を変更する
+	 (list code tree wraps (pushqueue buf mal::period))))
+
+(! mal::defreadmacro mal::o-bracket
+   (! let ((co (mal::find-co-bracket code)))
+	  (cons (drop code (+ 1 co))
+			((lambda ((ntree nwraps nbuf))
+			   (if nwraps
+				 (mal::growth ntree
+							  nil
+							  (list 'to-vector
+									(reduce (lambda (v e) (list e v))
+											wraps (mal::read (take code co))))
+							  (queue))
+				 (mal::growth ntree nil
+							  (cons 'vector (mal::read (take code co)))
+							  (queue))))
+			 (mal::growth-from-buf tree wraps buf)))))
+
+(! mal::defreadmacro mal::c-bracket
+   (throw mal::error::syntax "found excess close bracket."))
+
+(! mal::defreadmacro mal::semicolon
+   (! letrec ((skip-comment
+				(lambda (rest)
+				  (if rest
+					(if (equal mal::newline (car rest))
+					  (cdr rest)
+					  (skip-comment (cdr rest)))
+					nil))))
+	  (cons (skip-comment code)
+			(mal::growth-from-buf tree wraps buf))))
+
+(! mal::defreadmacro mal::space
+   (cons code (mal::growth-from-buf tree wraps  buf)))
+
+(! mal::defreadmacro mal::tab
+   (cons code (mal::growth-from-buf tree wraps  buf)))
+
+(! mal::defreadmacro mal::newline
+   (cons code (mal::growth-from-buf tree wraps  buf)))
+
+(define mal::find-co-paren
+  (! letrec ((find-co-paren-rec
+			   (lambda (code idx layer strflg)
+				 (if (< 0 layer)
+				   (if code
+					 (! cond
+						((equal mal::backslash (car code))
+						 	 (find-co-paren-rec (cdr (cdr code))
+												(+ 2 idx)
+												layer
+												strflg)
+						 (equal mal::d-quote (car code))
+							 (find-co-paren-rec (cdr code)
+												(+ 1 idx)
+												layer
+												(not strflg))
+						(and (not strflg) (equal mal::o-paren (car code)))
+							(find-co-paren-rec (cdr code)
+											   (+ 1 idx)
+											   (+ 1 layer)
+											   nil)
+						(and (not strflg) (equal mal::c-paren (car code)))
+							(find-co-paren-rec (cdr code)
+											   (+ 1 idx)
+											   (- layer 1)
+											   nil)
+						t (find-co-paren-rec (cdr code)
+											 (+ 1 idx)
+											 layer
+											 strflg)))
+					 (throw mal::error::syntax
+							"not found close parenthesis."))
+				   idx))))
+	 (lambda (code)
+	   (find-co-paren-rec code -1 1 nil))))
+
+(define mal::find-co-bracket
+  (! letrec ((find-co-bracket-rec
+			   (lambda (code idx layer strflg)
+				 (if (< 0 layer)
+				   (if code
+					 (! cond
+						((equal mal::backslash (car code))
+						 	 (find-co-paren-rec (cdr (cdr code))
+												(+ 2 idx)
+												layer
+												strflg)
+						(equal mal::d-quote (car code))
+							 (find-co-bracket-rec (cdr code)
+												(+ 1 idx)
+												layer
+												(not strflg))
+						(and (not strflg) (equal mal::o-bracket (car code)))
+							(find-co-bracket-rec (cdr code)
+											   (+ 1 idx)
+											   (+ 1 layer)
+											   nil)
+						(and (not strflg) (equal mal::c-bracket (car code)))
+							(find-co-bracket-rec (cdr code)
+											   (+ 1 idx)
+											   (- layer 1)
+											   nil)
+						t (find-co-bracket-rec (cdr code)
+											 (+ 1 idx)
+											 layer
+											 strflg)))
+					 (throw mal::error::syntax "not found close bracket."))
+				   idx))))
+	 (lambda (code)
+	   (find-co-bracket-rec code -1 1 nil))))
+
+(define mal::take-string
+  (! let ((char-a (car (to-list "a")))
+		  (char-b (car (to-list "b")))
+		  (char-f (car (to-list "f")))
+		  (char-n (car (to-list "n")))
+		  (char-r (car (to-list "r")))
+		  (char-t (car (to-list "t")))
+		  (char-v (car (to-list "v")))
+		  (char-0 (car (to-list "0")))
+		  )
+	 (lambda (code buf)
+	   (if code
+		 (! cond
+			((equal mal::d-quote (car code)) (list (string buf) (cdr code))
+			 (equal mal::backslash (car code))
+			 (mal::take-string
+			   (cdr (cdr code))
+			   (pushqueue buf
+						  (! let ((c (car (cdr code))))
+							 (! cond ((equal char-a c) 7  ; \a
+								      (equal char-b c) 8  ; \b
+									  (equal char-f c) 12; \f
+									  (equal char-n c) 10; \n
+									  (equal char-r c) 13; \r
+									  (equal char-t c) 9 ; \t
+									  (equal char-v c) 11; \v
+									  (equal char-0 c) 0  ; \0
+									  t c)))))
+			 t (mal::take-string (cdr code) (pushqueue buf (car code)))))
+		 (throw mal::error::syntax "not found close double quote.")))))
+
+(define mal::growth
+  (lambda (tree wraps obj)
+	(list (pushqueue tree (reduce (lambda (v e) (list e v)) wraps obj))
+			   nil
+			   (queue))))
+
+(define mal::growth-from-buf
+  (! let ((read-tok
+			(lambda (tok)
+			  (! let ((stok (string tok)))
+				 (! acond
+					((or (equal stok "nil") (equal stok "NIL")) nil
+					 (stoi stok) it
+					 (stof stok) it
+					 t (symbol tok)))))))
+	 (lambda (tree wraps buf)
+	   (if (empty buf)
+		 (list tree wraps (queue))
+		 (mal::growth tree wraps (read-tok (to-list buf)))))))
+
+(define mal::seekenv
+  (lambda (env sym)
+	(if env
+	  (! aif (assoc (car env) sym)
+		 it
+		 (mal::seekenv (cdr env) sym))
+	  nil)))
+
+(define mal::mapeval
+  (lambda (coll env)
+	(if coll
+	  (cons (mal::eval (car coll) env) (mal::mapeval (cdr coll) env))
+	  nil)))
+
+(define mal::expand-quasiquote
+  (lambda (expr env)
+	(! letrec ((expand-rec (lambda (rest)
+							 (if rest
+							   (if (and (not (atom (car rest)))
+										(eq 'splicing (car (car rest))))
+								 (append (mal::eval (car (cdr (car rest))) env)
+										 (expand-rec (cdr rest)))
+								 (cons (mal::expand-quasiquote (car rest) env)
+									   (expand-rec (cdr rest))))))))
+	   (! cond ((atom expr) expr
+		   		(eq 'unquote (car expr)) (mal::eval (car (cdr expr)) env)
+		   		t (expand-rec expr))))))
+
+(define mal::bind-tree
+  (lambda (treea treeb)
+	(if treea
+	  (if (atom treea)
+		(list (cons treea treeb))
+		(if (and (atom treeb) treeb)
+		  (throw mal::error::type
+				 (sprint "cannot bind: " treea " and " treeb))
+		  (catch (lambda (id m) (if (equal id mal::error::type)
+								  (throw  mal::error::type
+										  (sprint "cannot bind: " treea " and " treeb))
+								  (throw id m)))
+				 (nconc (mal::bind-tree (car treea) (car treeb))
+						(mal::bind-tree (cdr treea) (cdr treeb)))))))))
+
+(define mal::read
+  (! letrec
+	 ((read-rec
+		(lambda ((code tree wraps buf))
+		  (if code
+			(! aif (assocdr mal::+readmacros+ (car code))
+			   (read-rec (it (cdr code) tree wraps buf))
+			   (read-rec (list (cdr code) tree wraps
+							   (pushqueue buf (car code)))))
+			(to-list (car (mal::growth-from-buf tree wraps buf)))))))
+	 (lambda (str) (read-rec (list (to-list str) (queue) nil (queue))))))
+
+(define mal::readtop
+  (lambda (str) (cons 'do (mal::read str))))
+
+(define mal::eval
+  (lambda (expr env)
+	(if (atom expr)
+	  (if (eq '<symb> (type expr))
+		(! aif (mal::seekenv env expr)
+		   (cdr it)
+		   (throw mal::error::symbol (sprint expr " is not defined.")))
+		expr)
+	  (! let ((proc (car expr))
+			  (args (cdr expr)))
+		 (! cond
+			((eq 'if proc) (if (mal::eval (car args) env)
+							 (mal::eval (car (cdr args)) env)
+							 (mal::eval (car (cdr (cdr args))) env))
+			 (eq 'quote proc) (car args)
+			 (eq 'lambda proc) (lambda largs
+								 (mal::eval (car (cdr args))
+											(cons (mal::bind-tree (car args) largs)
+												  env)))
+			 (eq '! proc) (mal::eval (apply (mal::eval (car args) env) (cdr args))
+									 env)
+			 (eq 'define proc) (! let ((genv (last (environment))))
+								  (do (! aif (mal::seekenv genv (car args))
+										 (rplacd it (mal::eval (car (cdr args)) env))
+										 (rplaca genv
+												 (cons (cons (car args)
+															 (mal::eval (car (cdr args))
+																		env))
+													   (car genv))))
+									  (car args)))
+			 (eq 'setq proc) (! aif (mal::seekenv env (car args))
+								(do (rplacd it (mal::eval (car (cdr args)) env))
+								    (car args))
+								(throw mal::error::symbol
+									   (sprint (car args) " is not defined.")))
+			 (eq 'do proc) (! letrec ((recur (lambda (rest)
+											   (if (cdr rest)
+												 (do (mal::eval (car rest) env)
+												     (recur (cdr rest)))
+												 (mal::eval (car rest) env)))))
+							  (if args (recur args) nil))
+			 (eq 'and proc) (! letrec ((recur (lambda (rest ret)
+												(if ret
+												  (if rest
+													(recur (cdr rest)
+														   (mal::eval (car rest) env))
+													ret)
+												  nil))))
+							   (recur args t))
+			 (eq 'or proc) (! letrec ((recur (lambda (rest ret)
+											   (if ret
+												 ret
+												 (if rest
+												   (recur (cdr rest)
+														  (mal::eval (car rest) env))
+												   ret)))))
+							  (recur args nil))
+			 (eq 'quasiquote proc) (mal::expand-quasiquote (car args) env)
+			 (eq 'catch proc) (catch (lambda err
+									   (apply (mal::eval (car args) env) err))
+									 (mal::eval (car (cdr args)) env))
+			 (eq 'environment proc) env
+			 t (apply (mal::eval proc env) (mal::mapeval args env))))))))
+
+; TODO
+(define mal::expand-syntax
+  (lambda (expr)
+	))
+
+(define mal::repl
+  (lambda ()
+	(do (prin "mmal> ")
+	    (! aif (getline)
+		 (do (print (mal::eval (mal::readtop it) (environment)))
+		     (mal::repl))
+		 nil))))
+
+
