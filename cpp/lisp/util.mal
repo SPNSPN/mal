@@ -301,26 +301,6 @@
 		(define ,class-name (lambda () (lambda (key)
 										 (car (assocdr records key))))))))
 
-(! defclass vector
-  (mem (vect nil))
-  (vsize 1)
-  (head 0)
-  (size (lambda () head))
-  (get (lambda (idx) (getat mem idx)))
-  (set (lambda (idx val) (setat mem idx val)))
-  (push (lambda (val) (if (< head vsize)
-						  (do (setat mem head val) (setq head (+ head 1)))
-						  (do (setq mem (apply vect
-											   (append '(nil)
-													   (range 0 (length mem))
-													   (to-list mem))))
-							  (setq vsize (* 2 (+ 1 vsize)))
-							  (setat mem head val)
-							  (setq head (+ head 1))))))
-  (pop (lambda () (do (setq head (- head 1))
-					  (getat mem head)))))
-
-
 (define aif
   (lambda (pred then els)
 	`(! let ((it ,pred))
