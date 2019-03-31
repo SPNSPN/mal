@@ -1,0 +1,46 @@
+(load "lisp/interpreter.mal")
+
+(define llvm::genid
+  (! let ((id 0))
+	 (lambda ()
+	   (do (setq id (+ id 1))
+		   id))))
+
+(define llvm::struct::lobj
+  (lambda () "%struct.Lobj = type { i8, i32, i32, i32 }"))
+
+(define llvm::alloc-obj
+  (lambda (sym) (sprint "%" sym " = alloca %struct.Lobj, align 8")))
+(define llvm::set-nil
+  (lambda (sym)
+	(! let* ((ida (llvm::genid))
+			 (idb (llvm::genid))
+			 (idc (llvm::genid))
+			 (idd (llvm::genid)))
+	   (sprint "%" ida
+			   " = getelementptr inbounds %struct.Lobj, %struct.Lobj* %" sym
+			   ", i32 0, i32 0\n"
+			   "store i8 " llvm::type::nil ", i8* %" ida ", align 1\n"
+			   "%" idb
+			   " = getelementptr inbounds %struct.Lobj, %struct.Lobj* %" sym
+			   ", i32 0, i32 1\n"
+			   "store i32 0, i32* %" idb ", align 8\n"
+			   "%" idc
+			   " = getelementptr inbounds %struct.Lobj, %struct.Lobj* %" sym
+			   ", i32 0, i32 2\n"
+			   "store i32 0, i32* %" idc ", align 8\n"
+			   "%" idd
+			   " = getelementptr inbounds %struct.Lobj, %struct.Lobj* %" sym
+			   ", i32 0, i32 3\n"
+			   "store i32 0, i32* %" idd ", align 8\n"))))
+
+(define llvm::compile
+  (lambda (expr env)
+	(! let ((typ (type expr)))
+	   (! cond
+		  ((eq '<nil> typ) ()
+		   (eq '<symb> typ) ()
+		   (eq '<inum> typ) ()
+		   (eq '<cons> typ) ()
+		   )))))
+

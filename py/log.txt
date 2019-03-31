@@ -1,0 +1,1012 @@
+Traceback (most recent call last):
+  File "./test.py", line 83, in <module>
+    CHECK("(load \"lisp/matrix.mal\") (matrix::determinant '((3 1 1 2 1) (5 1 3 4 1) (2 0 1 0 3) (1 3 2 1 1) (2 1 5 10 1)))", "-292")
+  File "./test.py", line 5, in CHECK
+    s = lprint(leval(cons(Symb("do"), lread(code)), genv))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 286, in pdo
+    return leval(car(rest), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 867, in <lambda>
+    leval(lapply(leval(car(args), env), cdr(args)), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 867, in <lambda>
+    leval(lapply(leval(car(args), env), cdr(args)), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 286, in pdo
+    return leval(car(rest), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 609, in mapeval
+    eargs = cons(leval(e, env), eargs)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 609, in mapeval
+    eargs = cons(leval(e, env), eargs)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 368, in leval
+    return proc(cdr(expr), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 61, in __call__
+    return self.proc(env, args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 227, in pif
+    return leval(car(cdr(args)), env)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 369, in leval
+    return lapply(proc, mapeval(cdr(expr), env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 373, in lapply
+    return proc(args)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 76, in __call__
+    return leval(self.body, cons(bind_tree(self.args, args), self.env))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 589, in bind_tree
+    , bind_tree(cdr(treea), cdr(treeb)))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 588, in bind_tree
+    return append(bind_tree(car(treea), car(treeb))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 584, in bind_tree
+    return l(cons(treea, treeb))
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 806, in l
+    return reverse(coll)
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 624, in reverse
+    while not atom(rest):
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 110, in atom
+    if Symb("<cons>") == ltype(o):
+  File "/home/fuji/Documents/py_code/mal/mal.py", line 200, in ltype
+    return Symb("<cons>")
+RecursionError: maximum recursion depth exceeded

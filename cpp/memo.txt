@@ -1,0 +1,20 @@
+TODO compile-const-p
+	const-prim: inum fnum strn
+	const-subr: 全ての引数がconst and subrに副作用がない
+	const-spfm: if pred then else -> predがconstならthenかelseに展開
+				lambda -> 常にconst
+				define sym val -> valがconstなら展開
+				setq sym val -> 常にnot const
+				quote -> 常にconst
+				quasiquote -> 常にconst
+				environment -> 常にnot const
+				! func args -> funcがconstなら展開
+				do -> 最後の引数以外がconstなら展開
+TODO レベルベース HM型推論
+TODO 32bit以上の大きさのbig number型
+TODO 有理数 fraction型
+TODO 複素数 complex型
+TODO 正規表現vm
+TODO prolog vm
+TODO mml vm
+TODO サーバーとしてlisp interpreterを使う、画面上に表示する物体をgenvに保存して、別プロセスのUIから操作を受けて動作する、smalltalk、scadのイメージ
