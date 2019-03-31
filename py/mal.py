@@ -32,22 +32,36 @@ class Cons:
 
 class Queu:
 	def __init__ (self):
-		self.mem = []
+		self.entr = nil
+		self.exit = self.entr
 
 	def push (self, val):
-		self.mem.append(val)
+		c = Cons(val, nil)
+		if isnil(self.entr):
+			self.entr = c
+			self.exit = c
+		else:
+			rplacd(self.entr, c);
+			self.entr = c
 		return self
 
 	def pop (self):
-		v = self.mem[0]
-		self.mem.pop(0)
-		return v
+		if isnil(self.exit):
+			return nil
+
+		e = car(self.exit)
+		if self.exit is self.entr:
+			self.exit = nil
+			self.entr = nil
+		else:
+			self.exit = cdr(self.exit)
+		return e
 	
 	def __eq__ (self, a):
-		return isinstance(a, Queu) and self.mem == a.mem
+		return isinstance(a, Queu) and self.exit == a.exit
 
 	def __str__ (self):
-		return "/({0})/".format(" ".join([lprint(e) for e in self.mem]))
+		return "/{0}/".format(lprint(self.exit))
 
 class Spfm:
 	def __init__ (self, proc, name):
@@ -136,6 +150,11 @@ def atom (o):
 	if Symb("<cons>") == ltype(o):
 		return nil
 	return t
+
+def isnil (o):
+	if isinstance(o, NIL):
+		return t
+	return nil
 
 def add (*nums):
 	acc = 0
@@ -274,7 +293,7 @@ def ldefine (env, args):
 def lsetq (env, args):
 	sym = car(args)
 	rest = env
-	while not atom(rest):
+	while not isnil(rest):
 		idx = associdx(car(rest), sym)
 		if not idx is None:
 			rplaca(rest, cons(cons(sym, leval(car(cdr(args)), env))
@@ -307,10 +326,10 @@ def expand_quasiquote (expr, env):
 
 	eexpr = Queu()
 	rest = expr
-	while not atom(rest):
+	while not isnil(rest):
 		if not atom(car(rest)) and Symb("splicing") == car(car(rest)):
 			sexpr = leval(car(cdr(car(rest))), env)
-			while not atom(sexpr):
+			while not isnil(sexpr):
 				eexpr.push(car(sexpr))
 				sexpr = cdr(sexpr)
 		else:
@@ -321,7 +340,7 @@ def expand_quasiquote (expr, env):
 def attr (env, args):
 	ret = car(args)
 	rest = cdr(args)
-	while not atom(rest):
+	while not isnil(rest):
 		ret = ret.__dict__[car(rest).name]
 		rest = cdr(rest)
 	return ret
@@ -329,7 +348,7 @@ def attr (env, args):
 
 def ldo (env, args):
 	rest = args
-	while not atom(rest) and not atom(cdr(rest)):
+	while not isnil(rest) and not isnil(cdr(rest)):
 		leval(car(rest), env)
 		rest = cdr(rest)
 	return leval(car(rest), env)
@@ -450,7 +469,7 @@ def lempty (coll):
 			return t
 		return nil
 	if isinstance(coll, Queu):
-		if len(coll.mem) < 1:
+		if isnil(coll.exit):
 			return t
 		return nil
 	if isinstance(coll, Symb):
@@ -501,7 +520,7 @@ def lprint (expr):
 	try:
 		rest = dup
 		idx = 0
-		while not atom(rest):
+		while not isnil(rest):
 			s += "$" + str(idx) + " = " + lprint_rec(car(rest), dup, False) + "\n"
 			rest = cdr(rest)
 			idx += 1
@@ -533,7 +552,7 @@ def lprint_rec (expr, dup, rec):
 		elif isinstance(expr, list):
 			return "[{0}]".format(" ".join([lprint(e) for e in expr]))
 		elif isinstance(expr, Queu):
-			return "/({0})/".format(" ".join([lprint(e) for e in expr.mem]))
+			return "/{0}/".format(lprint(expr.exit))
 		elif isinstance(expr, Func):
 			return "<Func {0} {1}>".format(lprint(expr.args), lprint(expr.body))
 		elif isinstance(expr, Spfm):
@@ -615,7 +634,7 @@ def growth (tree, buff, rawmode):
 def wrap_readmacros (tree, rmacs):
 	wraped = tree
 	rest = rmacs
-	while not atom(rest):
+	while not isnil(rest):
 		wraped = l(car(rest), wraped)
 		rest = cdr(rest)
 	return wraped
@@ -693,7 +712,7 @@ def take_string (code):
 def cons2array (c):
 	arr = []
 	rest = c
-	while not atom(rest):
+	while not isnil(rest):
 		arr.append(car(rest))
 		rest = cdr(rest)
 	return arr
@@ -723,7 +742,7 @@ def bind (syms, vals):
 	rests = syms
 	restv = vals
 	ret = nil
-	while not atom(rests):
+	while not isnil(rests):
 		s = car(rests)
 		v = car(restv)
 		ret = cons(cons(s, v), ret)
@@ -734,7 +753,7 @@ def bind (syms, vals):
 def mapeval (args, env):
 	eargs = nil
 	rest = args
-	while not atom(rest):
+	while not isnil(rest):
 		e = car(rest)
 		eargs = cons(leval(e, env), eargs)
 		rest = cdr(rest)
@@ -743,7 +762,7 @@ def mapeval (args, env):
 def append (colla, collb):
 	app = collb
 	rest = reverse(colla)
-	while not atom(rest):
+	while not isnil(rest):
 		app = cons(car(rest), app)
 		rest = cdr(rest)
 	return app
@@ -751,7 +770,7 @@ def append (colla, collb):
 def reverse (coll):
 	rev = nil
 	rest = coll
-	while not atom(rest):
+	while not isnil(rest):
 		e = car(rest)
 		rev = cons(e, rev)
 		rest = cdr(rest)
@@ -759,7 +778,7 @@ def reverse (coll):
 
 def find (val, coll):
 	rest = coll
-	while not atom(rest):
+	while not isnil(rest):
 		if val == car(rest):
 			return val
 		rest = cdr(rest)
@@ -768,7 +787,7 @@ def find (val, coll):
 def findidx_eq (val, coll):
 	idx = 0
 	rest = coll
-	while not atom(rest):
+	while not isnil(rest):
 		if val is car(rest):
 			return idx
 		rest = cdr(rest)
@@ -783,11 +802,24 @@ def rplacd (c, o):
 	c.cdr = o
 	return c
 
-def last (a):
-	rest = a
-	while not atom(cdr(rest)):
-		rest = cdr(rest)
-	return rest
+def last (o):
+	if isinstance(o, Cons):
+		rest = o
+		while not isnil(cdr(rest)):
+			rest = cdr(rest)
+		return rest
+	if isinstance(o, NIL):
+		return nil
+	if isinstance(o, Queu):
+		return o.entr
+	if isinstance(o, Symb):
+		return o[-1]
+	if isinstance(o, str):
+		return o[-1]
+	if isinstance(o, list):
+		return o[-1]
+	raise Erro(ErroId.Type, "cannot apply last to {0}".format(path))
+	
 
 def nconc (*args):
 	if not args:
@@ -816,7 +848,8 @@ def vect (*args):
 
 def queue (*args):
 	queu = Queu()
-	queu.mem = list(args)
+	queu.exit = l(*args)
+	queu.entr = last(queu.exit)
 	return queu
 
 def to_list (obj):
@@ -827,7 +860,7 @@ def to_list (obj):
 	elif isinstance(obj, str):
 		return l(*[ord(c) for c in obj])
 	elif isinstance(obj, Queu):
-		return l(*obj.mem)
+		return obj.exit
 	elif isinstance(obj, Cons):
 		return obj
 	elif obj is nil:
@@ -838,7 +871,7 @@ def to_vect (obj):
 	if isinstance(obj, Cons):
 		rest = obj
 		vect = []
-		while not atom(rest):
+		while not isnil(rest):
 			vect.append(car(rest))
 			rest = cdr(rest)
 		return vect
@@ -847,7 +880,7 @@ def to_vect (obj):
 	elif isinstance(obj, str):
 		return [ord(c) for c in obj]
 	elif isinstance(obj, Queu):
-		return obj.mem
+		return cons2array(obj.exit)
 	elif isinstance(obj, list):
 		return obj
 	elif obj is nil:
@@ -858,22 +891,15 @@ def to_queue (obj):
 	if isinstance(obj, Cons):
 		rest = obj
 		queu = Queu()
-		while not atom(rest):
-			queu.push(car(rest))
-			rest = cdr(rest)
+		queu.exit = obj
+		queu.entr = last(obj)
 		return queu
 	elif isinstance(obj, Symb):
-		queu = Queu()
-		queu.mem = [ord(c) for c in obj.name]
-		return queu
+		return queue(*[ord(c) for c in obj.name])
 	elif isinstance(obj, str):
-		queu = Queu()
-		queu.mem = [ord(c) for c in obj]
-		return queu
+		return queue(*[ord(c) for c in obj])
 	elif isinstance(obj, list):
-		queu = Queu()
-		queu.mem = [c for c in obj]
-		return queu
+		return queue(*obj)
 	elif isinstance(obj, Queu):
 		return obj
 	elif obj is nil:
@@ -884,12 +910,12 @@ def symbol (obj):
 	if isinstance(obj, Cons):
 		rest = obj
 		strn = ""
-		while not atom(rest):
+		while not isnil(rest):
 			strn += chr(car(rest))
 			rest = cdr(rest)
 		return Symb(strn)
 	elif isinstance(obj, Queu):
-		return Symb("".join([chr(e) for e in obj.mem]))
+		return symbol(to_vect(obj))
 	elif isinstance(obj, list):
 		return Symb("".join([chr(e) for e in obj]))
 	elif isinstance(obj, str):
@@ -926,7 +952,7 @@ def drop (coll, n):
 def associdx (alist, key):
 	idx = 0
 	rest = alist
-	while not atom(rest):
+	while not isnil(rest):
 		e = car(rest)
 		if car(e) == key:
 			return idx
@@ -936,7 +962,7 @@ def associdx (alist, key):
 
 def assocdr (alist, key):
 	rest = alist
-	while not atom(rest):
+	while not isnil(rest):
 		e = car(rest)
 		if car(e) == key:
 			return cdr(e)
@@ -945,7 +971,7 @@ def assocdr (alist, key):
 
 def seekenv (env, sym):
 	rest = env
-	while not atom(rest):
+	while not isnil(rest):
 		e = car(rest)
 		val = assocdr(e, sym)
 		if not val is None:

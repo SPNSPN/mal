@@ -31,12 +31,6 @@
 	  coll
 	  (cons (copy (car coll)) (copy (cdr coll))))))
 
-(define last
-  (lambda (coll)
-	(if (eq '<cons> (type (cdr coll)))
-	  (last (cdr coll))
-	  coll)))
-
 (define zip
   (lambda (colla collb)
 	(if (and colla collb)

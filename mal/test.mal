@@ -64,6 +64,7 @@
 (check "(list 5 4 3 2 1)" '(5 4 3 2 1))
 (check "(rplaca (cons nil 44) 34)" '(34 . 44))
 (check "(rplacd (cons 44 55) (cons 3 nil))" '(44 3))
+(check "(last (list 3 4 5 6))" '(6))
 (check "(nconc (list 1 2 3) (list 4 5))" '(1 2 3 4 5))
 (check "(/ (+ 71 55) (- (* 2 3) 3))" 42)
 (check "(/ 3 2)" 1)
@@ -96,6 +97,7 @@
 (check "(pushqueue (pushqueue (pushqueue (queue) 5) 1) 0)"
 	   (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))
 (check "(popqueue (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))" 5)
+(check "(last (queue 1 2 3))" '(3))
 (check "(to-list \"hello\")" '(104 101 108 108 111))
 (check "(to-list 'hello)" '(104 101 108 108 111))
 (check "(to-list [1 2 3 4])" '(1 2 3 4))

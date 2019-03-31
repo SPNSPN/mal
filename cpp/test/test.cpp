@@ -1289,6 +1289,7 @@ int main (int argc, char **argv)
 	ITP_CHECK("(list 5 4 3 2 1)", "(5 4 3 2 1)");
 	ITP_CHECK("(rplaca (cons nil 44) 34)", "(34 . 44)");
 	ITP_CHECK("(rplacd (cons 44 55) (cons 3 nil))", "(44 3)");
+	ITP_CHECK("(last (list 3 4 5 6))", "(6)");
 	ITP_CHECK("(nconc (list 1 2 3) (list 4 5))", "(1 2 3 4 5)");
 	ITP_CHECK("(/ (+ 71 55) (- (* 2 3) 3))", "42");
 	ITP_CHECK("(/ 3 2)", "1");
@@ -1326,6 +1327,7 @@ int main (int argc, char **argv)
 			, "/(5 1 0)/");
 	ITP_CHECK("(popqueue (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))"
 			, "5");
+	ITP_CHECK("(last (queue 1 2 3))", "(3)");
 	ITP_CHECK("(to-list \"hello\")", "(104 101 108 108 111)");
 	ITP_CHECK("(to-list 'hello)", "(104 101 108 108 111)");
 	ITP_CHECK("(to-list [1 2 3 4])", "(1 2 3 4)");

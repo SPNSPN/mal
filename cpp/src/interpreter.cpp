@@ -31,6 +31,7 @@ Interpreter::Interpreter ()
 	subr.push_back(&Interpreter::subr_equal);
 	subr.push_back(&Interpreter::subr_rplaca);
 	subr.push_back(&Interpreter::subr_rplacd);
+	subr.push_back(&Interpreter::subr_last);
 	subr.push_back(&Interpreter::subr_nconc);
 	subr.push_back(&Interpreter::subr_add);
 	subr.push_back(&Interpreter::subr_sub);
@@ -125,6 +126,11 @@ Interpreter::Interpreter ()
 				pool.make_cons(pool.make_symb("rplacd")
 					, pool.make_subr("rplacd"
 						, findidx<Subr>(subr, &Interpreter::subr_rplacd)))
+				, pool.getcar(genv)));
+	pool.setcar(genv, pool.make_cons(
+				pool.make_cons(pool.make_symb("last")
+					, pool.make_subr("last"
+						, findidx<Subr>(subr, &Interpreter::subr_last)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
 				pool.make_cons(pool.make_symb("nconc")
@@ -407,6 +413,36 @@ Addr Interpreter::subr_rplacd (Addr args)
 	Addr cons = pool.getcar(args);
 	pool.setcdr(cons, pool.getcar(pool.getcdr(args)));
 	return cons;
+}
+
+Addr Interpreter::subr_last (Addr args)
+{
+	Addr obj = pool.getcar(args);
+	Byte typ = pool.type(obj);
+	if (Pool::ConsT == typ)
+	{
+		Addr rest = obj;
+		for (; pool.consp(pool.getcdr(rest)); rest = pool.getcdr(rest)) { ; }
+		return rest;
+	}
+
+	if (Pool::NilT == typ)
+	{
+		return Pool::nil;
+	}
+
+	if (Pool::QueuT == typ)
+	{
+		return pool.getentr(obj);
+	}
+
+	if (Pool::VectT == typ || Pool::StrnT == typ || Pool::SymbT == typ)
+	{
+		return pool.getatvect(obj, pool.getvsize(obj) - 1);
+	}
+
+	return pool.make_erro(Type
+			, pool.make_strn(std::string("cannot apply subr_last to ") + print(obj)));
 }
 
 Addr Interpreter::subr_nconc (Addr args)

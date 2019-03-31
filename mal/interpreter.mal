@@ -84,9 +84,8 @@
 
 (! mal::defreadmacro mal::period
    (if (empty buf)
-	 (! let ((ltree (to-list tree)))
-		(do (rplacd (last ltree) (car (mal::read code)))
-		    (list nil tree nil (queue)))) ; TODO queueをdequeにしてto-listの代わりにpopback、pushbackでlast要素を取得する、last要素の参照に対してrplacdすることで末尾を変更する
+	 (do (rplacd (last tree) (car (mal::read code)))
+	   	 (list nil tree nil (queue)))
 	 (list code tree wraps (pushqueue buf mal::period))))
 
 (! mal::defreadmacro mal::o-bracket

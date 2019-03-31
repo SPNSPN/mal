@@ -96,12 +96,12 @@
 			   (if nwraps
 				 (mal::growth ntree
 							  nil
-							  (list 'to-vector
+							  (list 'to-vect
 									(reduce (lambda (v e) (list e v))
 											wraps (mal::read (take code co))))
 							  (queue))
 				 (mal::growth ntree nil
-							  (cons 'vector (mal::read (take code co)))
+							  (cons 'vect (mal::read (take code co)))
 							  (queue))))
 			 (mal::growth-from-buf tree wraps buf)))))
 

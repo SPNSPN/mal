@@ -53,6 +53,7 @@ class Interpreter
 		Addr subr_equal (Addr);
 		Addr subr_rplaca (Addr);
 		Addr subr_rplacd (Addr);
+		Addr subr_last (Addr);
 		Addr subr_nconc (Addr);
 		Addr subr_add (Addr);
 		Addr subr_sub (Addr);
