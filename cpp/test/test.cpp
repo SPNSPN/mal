@@ -1356,7 +1356,7 @@ int main (int argc, char **argv)
 	ITP_CHECK("((lambda (head . rest) rest) 1 2 3 4)" , "(2 3 4)");
 	ITP_CHECK("((lambda all all) 1 2 3 4)" , "(1 2 3 4)");
 	ITP_CHECK("((lambda ((pa (pb pc) pd)) pc) (list 1 (list 2 3) 4))" , "3");
-	ITP_CHECK("(load \"lisp/matrix.mal\") (matrix::determinant '((3 1 1 2 1) (5 1 3 4 1) (2 0 1 0 3) (1 3 2 1 1) (2 1 5 10 1)))"
+	ITP_CHECK("(load \"mal/matrix.mal\") (matrix::determinant '((3 1 1 2 1) (5 1 3 4 1) (2 0 1 0 3) (1 3 2 1 1) (2 1 5 10 1)))"
 			, "-292");
 	ITP_CHECK("(throw 1 \"an error occured!\")"
 			, "<Erro \"an error occured!\">");
@@ -1426,7 +1426,7 @@ int main (int argc, char **argv)
 	ITP_CHECK("`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 			, "[1 2 3 4 5 6 7 8 9 10]");
 	ITP_CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)");
-	ITP_CHECK("(load \"lisp/test.mal\")", "NIL");
+	ITP_CHECK("(load \"mal/test.mal\")", "NIL");
 
 
 	return 0;
