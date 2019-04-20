@@ -360,7 +360,7 @@ def lread (code):
 	while idx < len(code):
 		c = code[idx]
 		if "(" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			co = find_co_paren(code[idx + 1:])
 			tree = cons(wrap_readmacros(lread(code[idx + 1: idx + co + 1])
 						, buff[1]), tree)
@@ -369,7 +369,7 @@ def lread (code):
 		elif ")" == c:
 			raise Erro(ErroId.Syntax, "found excess close parenthesis.")
 		elif "[" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			co = find_co_bracket(code[idx + 1:])
 			buff[0] = lread(code[idx + 1: idx + co + 1])
 			if buff[1]:
@@ -382,28 +382,28 @@ def lread (code):
 		elif "]" == c:
 			raise Erro(ErroId.Syntax, "found excess close brackets.")
 		elif " " == c or "\t" == c or "\n" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 		elif ";" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			while idx < len(code) and "\n" != code[idx]:
 				idx += 1
 		elif "\"" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			(strn, inc) = take_string(code[idx + 1:])
 			idx += inc
 			tree = cons(strn, tree)
 			buff = ["", nil]
 		elif "'" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			buff[1] = cons(Symb("quote"), buff[1])
 		elif "`" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			buff[1] = cons(Symb("quasiquote"), buff[1])
 		elif "," == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			buff[1] = cons(Symb("unquote"), buff[1])
 		elif "@" == c:
-			tree = growth(tree, buff, False)
+			tree = growth(tree, buff)
 			buff[1] = cons(Symb("splicing"), buff[1])
 		elif "." == c:
 			if buff[0]:
@@ -415,7 +415,7 @@ def lread (code):
 			buff[0] += c
 		idx += 1
 
-	tree = growth(tree, buff, False)
+	tree = growth(tree, buff)
 	return reverse(tree)
 
 def leval (expr, env):
@@ -615,20 +615,19 @@ def fnumable (s):
 		return nil
 	return t
 
-def growth (tree, buff, rawmode):
+def growth (tree, buff):
 	buf = buff[0]
 	rmacs = buff[1]
 	if buf:
 		buff[0] = ""
 		buff[1] = nil
-		if rawmode:
-			return cons(wrap_readmacros(buf, rmacs), tree)
-		else:
-			if inumable(buf):
-				return cons(wrap_readmacros(int(buf), rmacs), tree)
-			if fnumable(buf):
-				return cons(wrap_readmacros(float(buf), rmacs), tree)
-			return cons(wrap_readmacros(Symb(buf), rmacs), tree)
+		if "nil" == buf or "NIL" == buf:
+			return cons(wrap_readmacros(nil, rmacs), tree)
+		if inumable(buf):
+			return cons(wrap_readmacros(int(buf), rmacs), tree)
+		if fnumable(buf):
+			return cons(wrap_readmacros(float(buf), rmacs), tree)
+		return cons(wrap_readmacros(Symb(buf), rmacs), tree)
 	return tree
 
 def wrap_readmacros (tree, rmacs):
@@ -832,7 +831,7 @@ def nconc (*args):
 
 def lload (path):
 	if not isinstance(path, str):
-		raise Erro(ErroId.Type, "cannot apply load to {0}".format(path))
+		raise Erro(ErroId.Type, "cannot apply load to {0}".format(lprint(path)))
 	try:
 		with open(path, "r") as fin:
 			expr = leval(cons(Symb("do"), lread(fin.read())), genv)

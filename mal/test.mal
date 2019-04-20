@@ -189,6 +189,8 @@
 (check "(define v [1 2 3]) (setat v 2 44) v" [1 2 44])
 (check "(eq (getat [1 nil 3] 1) nil)" t)
 (check "(if (getat [1 nil 3] 1) 1 2)" 2)
+(echeck "(getat 5 2)" mal::error::type "cannot apply getat to 5")
+(echeck "(setat (list 1 2 3) 2 44)" mal::error::type "cannot apply setat to (1 2 3)")
 (check "(to-list \"a\\nb\\tc\\0\")" '(97 10 98 9 99 0))
 (check "`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 	   [1 2 3 4 5 6 7 8 9 10])

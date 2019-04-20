@@ -1425,6 +1425,8 @@ int main (int argc, char **argv)
 	ITP_CHECK("(define v [1 2 3]) (setat v 2 44) v", "[1 2 44]");
 	ITP_CHECK("(eq (getat [1 nil 3] 1) nil)", "T");
 	ITP_CHECK("(if (getat [1 nil 3] 1) 1 2)", "2");
+	ITP_CHECK("(getat 5 2)", "<Erro \"cannot apply getat to 5\">");
+	ITP_CHECK("(setat (list 1 2 3) 2)", "<Erro \"cannot apply setat to (1 2 3)\">");
 	ITP_CHECK("`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 			, "[1 2 3 4 5 6 7 8 9 10]");
 	ITP_CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)");

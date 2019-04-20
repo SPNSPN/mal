@@ -76,10 +76,28 @@ class func
 	}
 }
 
+$erroid = @{
+	FullMemory = 0;
+	UnknownOpcode = 1;
+	OutOfEnvironment = 2;
+	Type = 3;
+	Symbol = 4;
+	Syntax = 5;
+	UnCallable = 6;
+	ArgsUnmatch = 7;
+	UnEvaluatable = 8;
+	FileNotFound = 9};
+
 
 function isnil ($o)
 {
 	if (($o -is [boolean]) -and ($o -eq $nil)) { return $t; }
+	return $nil;
+}
+
+function isnum ($o)
+{
+	if (($o -is [int]) -or ($o -is [decimal]) -or ($o -is [double]) -or ($o -is [float])) { return $t; }
 	return $nil;
 }
 
@@ -192,6 +210,71 @@ function assoc ($c, $key)
 	return $nil;
 }
 
+function lthrow ($eid, $emess)
+{
+	throw ("," + $eid + "," + $emess);
+}
+
+function empty ($coll)
+{
+	if ($coll -eq $null) { return $t; }
+	if (isnil $coll) { return $t; }
+	if (($coll -is [cons]) -and ((length $coll) -lt 1)) { return $t; }
+	if (($coll -is [string]) -and ($coll.length -lt 1)) { return $t; }
+# if ($coll -is [queu]) {}
+	if (($coll -is [symb]) -and ($coll.name.length -lt 1)) { return $t; }
+	return $nil;
+}
+
+function ltype ($o)
+{
+	if ($o -is [cons]) { return (new-object symb "<cons>"); }
+	if ($o -is [func]) { return (new-object symb "<func>"); }
+	if ($o -is [spfm]) { return (new-object symb "<spfm>"); }
+	if ($o -is [subr]) { return (new-object symb "<subr>"); }
+	if ($o -is [symb]) { return (new-object symb "<symb>"); }
+	if ($o -is [string]) { return (new-object symb "<strn>"); }
+	if (($o -is [int]) -or ($o -is [decimal])) { return (new-object symb "<inum>"); }
+	if (($o -is [float]) -or ($o -is [double])) { return (new-object symb "<fnum>"); }
+	if (isnil $o) { return (new-object symb "<nil>"); }
+	if (($o -is [array]) -or ($o -is [system.collections.arraylist])) { return (new-object symb "<vect>"); }
+# if ($o -is [queu]) { return (new-object symb "<queu>"); }
+	return $nil;
+}
+
+function getat ($vect, $idx)
+{
+	if (($vect -is [array]) -or ($vect -is [system.collections.arraylist]) -or ($vect -is [string]))
+	{
+		return $vect[$idx];
+	}
+
+	if ($vect -is [symb])
+	{
+		return $vect.name[$idx];
+	}
+
+	lthrow $erroid["Type"] ("cannot apply getat to " + (lprint $vect));
+}
+
+function setat ($vect, $idx, $val)
+{
+	if (($vect -is [array]) -or ($vect -is [system.collections.arraylist]) -or ($vect -is [string]))
+	{
+		write-host "debug: $val";
+		$vect[$idx] = $val;
+		return $vect;
+	}
+
+	if ($vect -is [symb])
+	{
+		$vect.name[$idx] = $val;
+		return $vect;
+	}
+
+	lthrow $erroid["Type"] ("cannot apply setat to " + (lprint $vect));
+}
+
 function seekenv ($env, $key)
 {
 	for ($rest = $env; -not (atom $rest); $rest = (cdr $rest))
@@ -199,8 +282,7 @@ function seekenv ($env, $key)
 		$record = (assoc (car $rest) $key);
 		if (-not (isnil $record)) { return $record; }
 	}
-	$name = lprint $key;
-	throw "SymbolError: $name is not defined.";
+	lthrow $erroid["Symbol"] ((lprint $key) + " is not defined.");
 }
 
 function rplaca ($c, $val)
@@ -248,6 +330,16 @@ function append1 ($a, $b)
 	return $ret;
 }
 
+function append
+{
+	$list = $nil;
+	for ($idx = $args.count - 1; $idx -gt -1; --$idx)
+	{
+		[void]($list = append1 $args[$idx] $list);
+	}
+	return $list;
+}
+
 function apply ($proc, $args_)
 {
 	if ($proc -is [subr])
@@ -265,7 +357,7 @@ function apply ($proc, $args_)
 		return & $proc (cons2array $args_);
 	}
 
-	throw "TypeError: $proc is not appliable.";
+	lthrow $erroid{"Type"} ($proc + " is not appliable.");
 }
 
 function vect
@@ -302,8 +394,7 @@ function tolist ($coll)
 	if ($coll -is [cons]) { return $coll; }
 	if (isnil $coll) { return $coll; }
 
-	$lobj = lprint $coll;
-	throw "TypeError: cannot cast ${lobj} to ConsT.";
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to ConsT.");
 }
 
 function tovect ($coll)
@@ -334,10 +425,53 @@ function tovect ($coll)
 	if ($coll -is [system.collections.arraylist]) { return $coll; }
 	if ($coll -eq $nil) { return (vect); }
 
-	$lobj = lprint $coll;
-	throw "TypeError: cannot cast ${lobj} to VectT.";
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to VectT.");
 }
 
+function symbol ($coll)
+{
+	if ($coll -is [cons])
+	{
+		$str = "";
+		for ($rest = $coll; -not (atom $rest); $rest = (cdr $rest))
+		{
+			$str += [char](car $rest)
+		}
+		return new-object symb $str;
+	}
+
+	if (($coll -is [array]) -or ($coll -is [system.collections.arraylist]))
+	{
+		$str = "";
+		$len = $coll.count;
+		for ($idx = 0; $idx -lt $len; ++$idx)
+		{
+			$str += [char]($coll[$idx]);
+		}
+		return new-object symb $str;
+	}
+	
+	if ($coll -is [string]) { return new-object symb $coll; }
+	if ($coll -is [symb]) { return $coll; }
+	if ($coll -eq $nil) { return new-object symb ""; }
+
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to SymbT.");
+}
+
+function load ($path)
+{
+	if ($path -isnot [string])
+	{
+		lthrow $erroid["Type"] ("cannot apply load to " + (lprint $path));
+	}
+
+	if (-not (test-path $path))
+	{
+		lthrow $erroid["FileNotFound"] ("not found file: " + (lprint $path));
+	}
+
+	return (leval (cat -raw $path | readtop_pipe) $genv);
+}
 
 
 function bind_tree ($treea, $treeb)
@@ -346,9 +480,7 @@ function bind_tree ($treea, $treeb)
 	if (atom $treea) { return list (cons $treea $treeb); }
 	if (atom $treeb)
 	{
-		$sa = lprint $treea;
-		$sb = lprint $treeb;
-		throw "TypeError: cannot bind $sa and $sb";
+		lthrow $erroid["Syntax"] ("cannot bind: " + (lprint $treea) + " and " + (lprint $treeb));
 	}
 
 	try
@@ -358,9 +490,7 @@ function bind_tree ($treea, $treeb)
 	}
 	catch
 	{
-		$sa = lprint $treea;
-		$sb = lprint $treeb;
-		throw "TypeError: cannot bind $sa and $sb";
+		lthrow $erroid["Syntax"] ("cannot bind: " + (lprint $treea) + " and " + (lprint $treeb));
 	}
 }
 
@@ -431,7 +561,7 @@ function find_co_paren ($src)
 
 		if ($layer -lt 1) { return $idx; }
 	}
-	throw "SyntaxError: not found close parenthesis.";
+	lthrow $erroid["Syntax"] "not found close parenthesis.";
 }
 
 function find_co_brackets ($src)
@@ -449,7 +579,7 @@ function find_co_brackets ($src)
 
 		if ($layer -lt 1) { return $idx; }
 	}
-	throw "SyntaxError: not found close brackets.";
+	lthrow $erroid["Syntax"] "not found close brackets.";
 }
 
 function take_string ($src)
@@ -475,21 +605,16 @@ function take_string ($src)
 		}
 		[void]($strn += $c);
 	}
-	throw "SyntaxError: not found close double quote.";
+	lthrow $erroid["Syntax"] "not found close double quote.";
 }
 
 function mapeval ($objs, $env)
 {
-	$lobjs = lprint $objs;
-	write-host "debug: mapeval: $lobjs";
 	$eobjs = $nil;
 	for ($rest = reverse $objs; -not (atom $rest); $rest = cdr $rest)
 	{
-		write-host "debug: for";
 		$eobjs = cons (leval (car $rest) $env) $eobjs;
 	}
-	$leobjs = lprint $eobjs;
-	write-host "debug: mapeval: end: $leobjs";
 	return $eobjs;
 }
 
@@ -531,8 +656,7 @@ function setq ($env, $sym, $val)
 	$record = (seekenv $env $sym);
 	if (isnil $record)
 	{
-		$name = lprint $sym;
-		throw "SymbolError: $name is not defined.";
+		lthrow $erroid["Symbol"] ((lprint $sym) + " is not defined.");
 	}
 	else
 	{
@@ -555,6 +679,34 @@ function syntax ($env, $proc, $exprs)
 {
 	return leval (apply (leval $proc $env) $exprs $env) $env;
 }
+
+function expand_quasiquote ($expr, $env)
+{
+	if (atom $expr) { return $expr; }
+	if (((car $expr) -is [symb]) -and ("unquote" -eq (car $expr).name))
+	{
+		return (leval (car (cdr $expr)) $env);
+	}
+
+	$eexpr = new-object system.collections.arraylist;
+	for ($rest = $expr; -not (atom $rest); $rest = cdr $rest)
+	{
+		$e = car $rest;
+		if ((-not (atom $e)) -and ((car $e) -is [symb]) -and ("splicing" -eq (car $e).name))
+		{
+			for ($sexpr = (leval (car (cdr $e)) $env); -not (atom $sexpr); $sexpr = cdr $sexpr)
+			{
+				[void]($eexpr.add((car $sexpr)));
+			}
+		}
+		else
+		{
+			[void]($eexpr.add((expand_quasiquote $e $env)));
+		}
+	}
+	return (tolist $eexpr);
+}
+
 
 
 function regist_subr ($env, $script, $name)
@@ -614,15 +766,27 @@ regist_subr $genv { param($args_);`
 	$acc = 0;
 	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
 	{
+		if (-not (isnum (car $rest)))
+		{
+			lthrow $erroid["Type"] ("cannot add " + (lprint $args_));
+		}
 		$acc += (car $rest);
 	}
 	return $acc;
 } "+";
 regist_subr $genv { param($args_);`
 	if (isnil $args_) { return 0; }
+	if (-not (isnum (car $args_)))
+	{
+		lthrow $erroid["Type"] ("cannot sub " + (lprint $args_));
+	}
 	$acc = car $args_;
 	for ($rest = cdr $args_; -not (atom $rest); $rest = cdr $rest)
 	{
+		if (-not (isnum (car $rest)))
+		{
+			lthrow $erroid["Type"] ("cannot sub " + (lprint $args_));
+		}
 		$acc -= (car $rest);
 	}
 	return $acc;
@@ -631,17 +795,29 @@ regist_subr $genv { param($args_);`
 	$acc = 1;
 	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
 	{
+		if (-not (isnum (car $rest)))
+		{
+			lthrow $erroid["Type"] ("cannot mul " + (lprint $args_));
+		}
 		$acc *= (car $rest);
 	}
 	return $acc;
 } "*";
 regist_subr $genv { param($args_);`
 	if (isnil $args_) { return 0; }
+	if (-not (isnum (car $args_)))
+	{
+		lthrow $erroid["Type"] ("cannot div " + (lprint $args_));
+	}
 	$acc = car $args_;
 	$fflg = $nil;
 	for ($rest = cdr $args_; -not (atom $rest); $rest = cdr $rest)
 	{
 		$n = car $rest;
+		if (-not (isnum $n))
+		{
+			lthrow $erroid["Type"] ("cannot div " + (lprint $args_));
+		}
 		if ($n -is [double]) { $fflg = $t; }
 		if (isnil $fflg)
 		{
@@ -654,7 +830,14 @@ regist_subr $genv { param($args_);`
 	}
 	return $acc;
 } "/";
-regist_subr $genv { param($args_); return (car $args_) % (car (cdr $args_))} "%";
+regist_subr $genv { param($args_);
+	$a = (car $args_);
+	$b = (car (cdr $args_));
+	if ((-not (isnum $a)) -or (-not (isnum $b)))
+	{
+		lthrow $erroid["Type"] ("cannot mod " + (lprint $args_));
+	}
+	return $a % $b} "%";
 regist_subr $genv { param($args_);`
 	if (isnil $args_) { return $t; }
 	for ($rest = $args_; -not (atom (cdr $rest)); $rest = cdr $rest)
@@ -673,6 +856,42 @@ regist_subr $genv { param($args_);`
 } ">";
 regist_subr $genv { param($args_); return (tolist (car $args_)); } "to-list";
 regist_subr $genv { param($args_); return (tovect (car $args_)); } "to-vect";
+regist_subr $genv { param($args_); return (symbol (car $args_)); } "symbol";
+regist_subr $genv { param($args_);
+	$str = "";
+	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
+	{
+		$obj = car $rest;
+		if ($obj -is [string])
+		{
+			$str += $obj;
+		}
+		else
+		{
+			$str += lprint $obj;
+		}
+	};
+	return $str; } "sprint";
+regist_subr $genv { param($args_); return (load (car $args_)); } "load";
+regist_subr $genv { param($args_); lthrow (car $args_) (car (cdr $args_)); } "throw";
+regist_subr $genv { param($args_); return (empty (car $args_)); } "empty";
+regist_subr $genv { param($args_);
+	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
+	{
+		write-host -nonewline (lprint (car $rest));
+	}
+	return $nil; } "prin";
+regist_subr $genv { param($args_);
+	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
+	{
+		write-host -nonewline (lprint (car $rest));
+	}
+	write-host "";
+	return $nil; } "print";
+regist_subr $genv { param($args_);
+	return (ltype (car $args_)); } "type";
+regist_subr $genv { param($args_); return (getat (car $args_) (car (cdr $args_))) } "getat";
+regist_subr $genv { param($args_); return (setat (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_)))) } "setat";
 
 regist_spfm $genv { param($args_, $env);`
 	(lif $env (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_))))} "if";
@@ -687,9 +906,58 @@ regist_spfm $genv { param($args_, $env);`
 regist_spfm $genv { param($args_, $env); return (do $env $args_); } "do";
 regist_spfm $genv { param($args_, $env);`
 	return (syntax $env (car $args_) (cdr $args_)); } "!";
+regist_spfm $genv { param($args_, $env);
+	return (expand_quasiquote (car $args_) $env); } "quasiquote";
 regist_spfm $genv { param($args_, $env);`
 	return iex (car $args_); } "ps";
+regist_spfm $genv { param($args_, $env);
+	if (isnil $args_) { return $t; }
+	$rest = $args_;
+	for (; -not (atom (cdr $rest)); $rest = cdr $rest)
+	{
+		if (isnil (leval (car $rest) $env)) { return $nil; }
+	}
+	return (leval (car $rest) $env); } "and";
+regist_spfm $genv { param($args_, $env);
+	if (isnil $args_) { return $nil; }
+	$rest = $args_;
+	for (; -not (atom (cdr $rest)); $rest = cdr $rest)
+	{
+		$val = (leval (car $rest) $env);
+		if (-not (isnil $val)) { return $val; }
+	}
+	return (leval (car $rest) $env); } "or";
+regist_spfm $genv { param($args_, $env);
+	try
+	{
+		return (leval (car (cdr $args_)) $env);
+	}
+	catch
+	{
+		$ex = $_.exception -split ",";
+		$eid = [int]($ex[1]);
+		return (apply (leval (car $args_) $env) (list $eid ($ex[2..($ex.length - 1)] -join ",")));
+	}} "catch";
 # TODO
+
+
+function readtop_pipe
+{
+	param([parameter(valuefrompipeline = $True)] $src);
+	return (lreadtop $src);
+}
+
+function eval_pipe
+{
+	param($env, [parameter(valuefrompipeline = $True)] $obj);
+	return (leval $obj $env);
+}
+
+function print_pipe
+{
+	param([parameter(valuefrompipeline = $True)] $obj);
+	return (lprint $obj);
+}
 
 
 function lreadtop ($src)
@@ -726,7 +994,7 @@ function lread ($src)
 		}
 		elseif (")" -eq $c)
 		{
-			throw "SyntaxError: found excess parenthesis.";
+			lthrow $erroid["Syntax"] "found excess close parenthesis.";
 		}
 		elseif ("[" -eq $c)
 		{
@@ -748,15 +1016,16 @@ function lread ($src)
 		}
 		elseif ("]" -eq $c)
 		{
-			throw "SyntaxError: found excess brackets.";
+			lthrow $erroid["Syntax"] "found excess brackets.";
 		}
 		elseif ("." -eq $c)
 		{
 			if (-not $buff[0])
 			{
-				rplacd $tree[$tree.count - 1]`
-				   	(car (lread $src.substring($idx + 1, $len - $idx - 1)));
-				return array2cons $tree;
+				[void]($ltree = array2cons $tree);
+				[void](rplacd (last $ltree)`
+					(car (lread $src.substring($idx + 1, $len - $idx - 1))));
+				return $ltree;
 			}
 			$buff[0] += $c;
 		}
@@ -807,14 +1076,7 @@ function leval ($expr, $env)
 
 			if ($proc -is [subr])
 			{
-				$debug = lprint $proc;
-				$ag = lprint $args_;
-				write-host "debug: call: $debug $ag";
-				$ret = $proc.call((mapeval $args_ $env));
-				$lret = lprint $ret;
-				write-host "debug: ret: $lret";
-				return $ret;
-# return $proc.call((mapeval $args_ $env));
+				return $proc.call((mapeval $args_ $env));
 			}
 			elseif ($proc -is [spfm])
 			{
@@ -861,7 +1123,7 @@ function leval ($expr, $env)
 			}
 			else
 			{
-				throw "TypeError: $proc is not callable.";
+				lthrow $erroid["UnCallable"] "$proc is not callable.";
 			}
 		}
 		elseif ($expr -is [symb])
@@ -914,7 +1176,7 @@ function lprint ($obj)
 		return $str.substring(0, $str.length - 1) + "]";
 	}
 
-	return $obj;
+	return [string]$obj;
 }
 
 function printcons ($a, $d)
