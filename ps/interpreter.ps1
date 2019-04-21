@@ -185,7 +185,7 @@ function isnil ($o)
 
 function isnum ($o)
 {
-	if (($o -is [int]) -or ($o -is [decimal]) -or ($o -is [double]) -or ($o -is [float])) { return $t; }
+	if (($o -is [int]) -or ($o -is [decimal]) -or ($o -is [byte]) -or ($o -is [double]) -or ($o -is [float])) { return $t; }
 	return $nil;
 }
 
@@ -1026,7 +1026,6 @@ regist_subr $genv { param($args_);`
 	if (isnil $args_) { return 0; }
 	if (-not (isnum (car $args_)))
 	{
-		write-host "debug: sub error car: $((car $args_).gettype())";
 		lthrow $erroid["Type"] ("cannot sub " + (lprint $args_));
 	}
 	$acc = car $args_;
@@ -1034,7 +1033,6 @@ regist_subr $genv { param($args_);`
 	{
 		if (-not (isnum (car $rest)))
 		{
-			write-host "debug: sub error: $((car $rest).gettype())";
 			lthrow $erroid["Type"] ("cannot sub " + (lprint $args_));
 		}
 		$acc -= (car $rest);
