@@ -1321,34 +1321,34 @@ int main (int argc, char **argv)
 	ITP_CHECK("(vect 1 (+ 1 1) 3)", "[1 2 3]");
 	ITP_CHECK("[]", "[]");
 	ITP_CHECK("[\"abc\" 42 (+ 1 1) () [1 2] 'non]" , "[\"abc\" 42 2 NIL [1 2] non]");
-	ITP_CHECK("(queue)", "/NIL/");
-	ITP_CHECK("(queue 1 2 3)", "/(1 2 3)/");
-	ITP_CHECK("(pushqueue (pushqueue (pushqueue (queue) 5) 1) 0)"
+	ITP_CHECK("(queu)", "/NIL/");
+	ITP_CHECK("(queu 1 2 3)", "/(1 2 3)/");
+	ITP_CHECK("(pushqueu (pushqueu (pushqueu (queu) 5) 1) 0)"
 			, "/(5 1 0)/");
-	ITP_CHECK("(popqueue (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))"
+	ITP_CHECK("(popqueu (pushqueu (pushqueu (pushqueu (queu) 5) 1) 0))"
 			, "5");
-	ITP_CHECK("(last (queue 1 2 3))", "(3)");
+	ITP_CHECK("(last (queu 1 2 3))", "(3)");
 	ITP_CHECK("(to-list \"hello\")", "(104 101 108 108 111)");
 	ITP_CHECK("(to-list 'hello)", "(104 101 108 108 111)");
 	ITP_CHECK("(to-list [1 2 3 4])", "(1 2 3 4)");
-	ITP_CHECK("(define queu (queue)) (pushqueue queu 1) (pushqueue queu 2) (pushqueue queu 3) (pushqueue queu 4) (to-list queu)"
+	ITP_CHECK("(define q (queu)) (pushqueu q 1) (pushqueu q 2) (pushqueu q 3) (pushqueu q 4) (to-list q)"
 			, "(1 2 3 4)");
 	ITP_CHECK("(to-list nil)", "NIL");
 	ITP_CHECK("(to-vect '(1 2 3 4))", "[1 2 3 4]");
 	ITP_CHECK("(to-vect \"hello\")", "[104 101 108 108 111]");
 	ITP_CHECK("(to-vect 'hello)", "[104 101 108 108 111]");
-	ITP_CHECK("(to-vect (pushqueue (pushqueue (pushqueue (queue) 5) 1) 0))"
+	ITP_CHECK("(to-vect (pushqueu (pushqueu (pushqueu (queu) 5) 1) 0))"
 			, "[5 1 0]");
 	ITP_CHECK("(to-vect nil)", "[]");
-	ITP_CHECK("(to-queue (list 1 2 3 4))", "/(1 2 3 4)/");
-	ITP_CHECK("(to-queue [1 2 3 4])", "/(1 2 3 4)/");
-	ITP_CHECK("(to-queue \"hello\")", "/(104 101 108 108 111)/");
-	ITP_CHECK("(to-queue 'hello)", "/(104 101 108 108 111)/");
-	ITP_CHECK("(to-queue nil)", "/NIL/");
+	ITP_CHECK("(to-queu (list 1 2 3 4))", "/(1 2 3 4)/");
+	ITP_CHECK("(to-queu [1 2 3 4])", "/(1 2 3 4)/");
+	ITP_CHECK("(to-queu \"hello\")", "/(104 101 108 108 111)/");
+	ITP_CHECK("(to-queu 'hello)", "/(104 101 108 108 111)/");
+	ITP_CHECK("(to-queu nil)", "/NIL/");
 	ITP_CHECK("(symbol '(104 101 108 108 111))", "hello");
 	ITP_CHECK("(symbol \"abcd\")", "abcd");
 	ITP_CHECK("(symbol [104 101 108 108 111])", "hello");
-	ITP_CHECK("(symbol (pushqueue (pushqueue (pushqueue (queue) 97) 98) 99))"
+	ITP_CHECK("(symbol (pushqueu (pushqueu (pushqueu (queu) 97) 98) 99))"
 			, "abc");
 	ITP_CHECK("(sprint \"a\" 1 (cons 1 2))", "\"a1(1 . 2)\"");
 	ITP_CHECK("`(1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10)"
@@ -1386,7 +1386,7 @@ int main (int argc, char **argv)
 	ITP_CHECK("(load 33)", "<Erro \"cannot apply load to 33\">");
 	ITP_CHECK("(to-vect 33)", "<Erro \"cannot cast 33 to VectT.\">");
 	ITP_CHECK("(symbol 33)", "<Erro \"cannot cast 33 to SymbT.\">");
-	ITP_CHECK("(to-queue 33)", "<Erro \"cannot cast 33 to QueuT.\">");
+	ITP_CHECK("(to-queu 33)", "<Erro \"cannot cast 33 to QueuT.\">");
 	ITP_CHECK("(setq ffoo 33)", "<Erro \"ffoo is not defined.\">");
 	ITP_CHECK("\"", "<Erro \"not found close double quote.\">");
 	ITP_CHECK("((lambda ((a . b)) a) 1)"
@@ -1399,18 +1399,18 @@ int main (int argc, char **argv)
 	ITP_CHECK("(% 3 nil)", "<Erro \"cannot mod (3 NIL)\">");
 	ITP_CHECK("(empty ())", "T");
 	ITP_CHECK("(empty [])", "T");
-	ITP_CHECK("(empty (queue))", "T");
+	ITP_CHECK("(empty (queu))", "T");
 	ITP_CHECK("(empty \"\")", "T");
 	ITP_CHECK("(empty '(1))", "NIL");
 	ITP_CHECK("(empty [1])", "NIL");
-	ITP_CHECK("(empty (pushqueue (queue) 1))", "NIL");
+	ITP_CHECK("(empty (pushqueu (queu) 1))", "NIL");
 	ITP_CHECK("(empty \"1\")", "NIL");
 	ITP_CHECK("(catch (lambda (id mess) (list 'trap id mess)) (do (print 1) (print 2) (throw 55 \"fail!\") (print 3) 'end))"
 			, "(trap 55 \"fail!\")");
 	ITP_CHECK("(type nil)", "<nil>");
 	ITP_CHECK("(type 1)", "<inum>");
 	ITP_CHECK("(type (cons 1 2))", "<cons>");
-	ITP_CHECK("(type (queue))", "<queu>");
+	ITP_CHECK("(type (queu))", "<queu>");
 	ITP_CHECK("(type [1 2])", "<vect>");
 	ITP_CHECK("(type 'foo)", "<symb>");
 	ITP_CHECK("(type \"bar\")", "<strn>");

@@ -23,6 +23,94 @@ class cons
 	}
 }
 
+class vect
+{
+	$siz;
+	$len;
+	$mem;
+
+	vect ()
+	{
+		$this.siz = 10;
+		$this.len  = 0;
+		$this.mem = @($False) * $this.siz;
+	}
+
+	[void] extend ()
+	{
+		$newsiz = $this.siz * 2;
+		$this.mem += @($False) * $this.siz;
+		$this.siz = $newsiz;
+	}
+
+	[void] push ($val)
+	{
+		if ($this.siz -le $this.len) { $this.extend(); }
+		$this.mem[$this.len] = $val;
+		++$this.len;
+	}
+
+	[Object] pop ()
+	{
+		--$this.len;
+		return $this.mem[$this.len + 1];
+	}
+
+	[Object] getat ($idx)
+	{
+		return $this.mem[$idx];
+	}
+
+	[void] setat ($idx, $val)
+	{
+		$this.mem[$idx] = $val;
+	}
+}
+
+class queu
+{
+	$entr;
+	$exit;
+
+	queu ()
+	{
+		$this.entr = $False;
+		$this.exit = $this.entr;
+	}
+
+	[queu] push ($val)
+	{
+		$c = (cons $val $False);
+		if (isnil $this.entr)
+		{
+			$this.entr = $c;
+			$this.exit = $c;
+		}
+		else
+		{
+			rplacd $this.entr $c;
+			$this.entr = $c;
+		}
+		return $this;
+	}
+
+	[object] pop ()
+	{
+		if (isnil $this.exit) { return $False; }
+		$e = car $this.exit;
+		if ($this.entr -eq $this.exit)
+		{
+			$this.entr = $False;
+			$this.exit = $False;
+		}
+		else
+		{
+			$this.exit = cdr $this.exit;
+		}
+		return $e;
+	}
+}
+
 class subr
 {
 	$script;
@@ -177,6 +265,22 @@ function equal ($a, $b)
 		}
 		return $nil;
 	}
+	if ($a -is [vect])
+	{
+		if (($b -isnot [vect]) -or (-not (equal $a.mem $b.mem)))
+		{
+			return $nil;
+		}
+		return $t;
+	}
+	if ($a -is [queu])
+	{
+		if (($b -isnot [queu]) -or (-not (equal $a.exit $b.exit)))
+		{
+			return  $nil;
+		}
+		return $t;
+	}
 	if ($a -eq $b) { return $t; };
 	return $nil;
 }
@@ -196,9 +300,17 @@ function list
 
 function last ($c)
 {
-	$rest = $c;
-	for ( ; -not (atom (cdr $rest)); $rest = cdr $rest) { ; }
-	return $rest;
+	if ($c -is [cons])
+	{
+		$rest = $c;
+		for ( ; -not (atom (cdr $rest)); $rest = cdr $rest) { ; }
+		return $rest;
+	}
+	if ($c -is [queu])
+	{
+		return $c.entr;
+	}
+	lthrow $erroid["Type"] ("cannot apply last to " + (lprint $c));
 }
 
 function assoc ($c, $key)
@@ -219,10 +331,14 @@ function empty ($coll)
 {
 	if ($coll -eq $null) { return $t; }
 	if (isnil $coll) { return $t; }
-	if (($coll -is [cons]) -and ((length $coll) -lt 1)) { return $t; }
 	if (($coll -is [string]) -and ($coll.length -lt 1)) { return $t; }
-# if ($coll -is [queu]) {}
+	if (($coll -is [queu]) -and (isnil $coll.exit)) { return $t; }
 	if (($coll -is [symb]) -and ($coll.name.length -lt 1)) { return $t; }
+	if ((($coll -is [array]) -or ($coll -is [system.collections.arraylist])) -and ($coll.count -lt 1))
+	{
+		return $t;
+	}
+	if (($coll -is [vect]) -and ($coll.len -lt 1)) { return $t; }
 	return $nil;
 }
 
@@ -237,13 +353,19 @@ function ltype ($o)
 	if (($o -is [int]) -or ($o -is [decimal])) { return (new-object symb "<inum>"); }
 	if (($o -is [float]) -or ($o -is [double])) { return (new-object symb "<fnum>"); }
 	if (isnil $o) { return (new-object symb "<nil>"); }
-	if (($o -is [array]) -or ($o -is [system.collections.arraylist])) { return (new-object symb "<vect>"); }
-# if ($o -is [queu]) { return (new-object symb "<queu>"); }
+	if ($o -is [vect]) { return (new-object symb "<vect>"); }
+	if (($o -is [array]) -or ($o -is [system.collections.arraylist])) { return (new-object symb "<array>"); }
+	if ($o -is [queu]) { return (new-object symb "<queu>"); }
 	return $nil;
 }
 
 function getat ($vect, $idx)
 {
+	if ($vect -is [vect])
+	{
+		return $vect.getat($idx);
+	}
+
 	if (($vect -is [array]) -or ($vect -is [system.collections.arraylist]) -or ($vect -is [string]))
 	{
 		return $vect[$idx];
@@ -259,10 +381,21 @@ function getat ($vect, $idx)
 
 function setat ($vect, $idx, $val)
 {
-	if (($vect -is [array]) -or ($vect -is [system.collections.arraylist]) -or ($vect -is [string]))
+	if ($vect -is [vect])
 	{
-		write-host "debug: $val";
+		$vect.setat($idx, $val);
+		return $vect;
+	}
+
+	if (($vect -is [array]) -or ($vect -is [system.collections.arraylist]))
+	{
 		$vect[$idx] = $val;
+		return $vect;
+	}
+
+	if ($vect -is [string])
+	{
+		$vect = $vect.substring(0, $idx) + $val + $vect.substring($idx + 1);
 		return $vect;
 	}
 
@@ -299,9 +432,26 @@ function rplacd ($c, $val)
 
 function length ($c)
 {
-	$len = 0;
-	for ($rest = $c; -not (atom $rest); $rest = cdr $rest) { ++$len; }
-	return $len;
+	if ($c -is [cons])
+	{
+		$len = 0;
+		for ($rest = $c; -not (atom $rest); $rest = cdr $rest) { ++$len; }
+		return $len;
+	}
+	if (($c -is [array]) -or ($c -is [system.collections.arraylist]))
+	{
+		return $c.count;
+	}
+	if ($c -is [vect])
+	{
+		return  $c.len;
+	}
+	if ($c -is [queu])
+	{
+		return (length $c.exit);
+	}
+
+	lthrow $erroid["Type"] ("cannot apply length to " + (lprint $c));
 }
 
 function reverse ($coll)
@@ -362,9 +512,25 @@ function apply ($proc, $args_)
 
 function vect
 {
-	[void]($l = new-object system.collections.arraylist);
-	foreach ($a in $args) { [void]($l.add($a)); }
-	return ,$l;
+	[void]($v = new-object vect);
+	foreach ($a in $args) { [void]($v.push($a)); }
+	return $v;
+}
+
+function queu
+{
+	return (toqueu $args);
+}
+
+function toarray ($coll)
+{
+	if ($coll -is [vect])
+	{
+		if ($coll.len -lt 1) { return ,@(); }
+		return $coll.mem[0..($coll.len - 1)];
+	}
+
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to Array.");
 }
 
 function tolist ($coll)
@@ -379,6 +545,11 @@ function tolist ($coll)
 		return $list;
 	}
 
+	if ($coll -is [vect])
+	{
+		return (tolist (toarray $coll));
+	}
+
 	if ($coll -is [string])
 	{
 		$list = $nil;
@@ -390,6 +561,7 @@ function tolist ($coll)
 		return $list;
 	}
 
+	if ($coll -is [queu]) { return $coll.exit; }
 	if ($coll -is [symb]) { return (tolist $coll.name); }
 	if ($coll -is [cons]) { return $coll; }
 	if (isnil $coll) { return $coll; }
@@ -401,10 +573,10 @@ function tovect ($coll)
 {
 	if ($coll -is [cons])
 	{
-		$vec = new-object system.collections.arraylist;
+		$vec = new-object vect;
 		for ($rest = $coll; -not (atom $rest); $rest = (cdr $rest))
 		{
-			[void]($vec.add((car $rest)));
+			[void]($vec.push((car $rest)));
 		}
 		return $vec;
 	}
@@ -412,20 +584,62 @@ function tovect ($coll)
 	if ($coll -is [string])
 	{
 		$lstr = [system.text.encoding]::ascii.getbytes($coll);
-		$vec = new-object system.collections.arraylist;
+		$vec = new-object vect;
 		for ($idx = 0; $idx -lt $coll.length; ++$idx)
 		{
-			[void]($vec.add($lstr[$idx]));
+			[void]($vec.push($lstr[$idx]));
 		}
 		return $vec;
 	}
 
+	if (($coll -is [array]) -or ($coll -is [system.collections.arraylist]))
+	{
+		$vec = new-object vect;
+		for ($idx = 0; $idx -lt $coll.length; ++$idx)
+		{
+			[void]($vec.push($coll[$idx]));
+		}
+		return $vec;
+	}
+	if ($coll -is [queu]) { return (tovect $coll.exit); }
 	if ($coll -is [symb]) { return (tovect $coll.name); }
-	if ($coll -is [array]) { return $coll; }
-	if ($coll -is [system.collections.arraylist]) { return $coll; }
-	if ($coll -eq $nil) { return (vect); }
+	if ($coll -is [vect]) { return $coll; }
+	if (isnil $coll) { return (vect); }
 
 	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to VectT.");
+}
+
+function toqueu ($coll)
+{
+	if ($coll -is [cons])
+	{
+		$q = new-object queu;
+		$q.exit = $coll;
+		$q.entr = last $coll;
+		return $q;
+	}
+	if (($coll -is [array]) -or ($coll -is [system.collections.arraylist]))
+	{
+		$q = new-object queu;
+		foreach ($a in $coll) { [void]($q.push($a)); }
+		return $q;
+	}
+	if ($coll -is [string])
+	{
+		$lstr = [system.text.encoding]::ascii.getbytes($coll);
+		$q = new-object queu;
+		for ($idx = 0; $idx -lt $coll.length; ++$idx)
+		{
+			[void]($q.push($lstr[$idx]));
+		}
+		return $q;
+	}
+	if ($coll -is [symb]) { return (toqueu $coll.name); }
+	if ($coll -is [vect]) { return (toqueu (toarray $coll)); }
+	if ($coll -is [queu]) { return $coll; }
+	if (isnil $coll) { return (queu); }
+
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to QueuT.");
 }
 
 function symbol ($coll)
@@ -450,12 +664,32 @@ function symbol ($coll)
 		}
 		return new-object symb $str;
 	}
-	
+
 	if ($coll -is [string]) { return new-object symb $coll; }
 	if ($coll -is [symb]) { return $coll; }
+	if ($coll -is [vect]) { return (symbol (toarray $coll)); }
+	if ($coll -is [queu]) { return (symbol $coll.exit); }
 	if ($coll -eq $nil) { return new-object symb ""; }
 
 	lthrow $erroid["Type"] ("cannot cast " + (lprint $coll) + " to SymbT.");
+}
+
+function sprint ($args_)
+{
+	$str = "";
+	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
+	{
+		$obj = car $rest;
+		if ($obj -is [string])
+		{
+			$str += $obj;
+		}
+		else
+		{
+			$str += lprint $obj;
+		}
+	};
+	return $str;
 }
 
 function load ($path)
@@ -755,13 +989,27 @@ regist_subr $genv { param($args_);`
 regist_subr $genv { param($args_);`
 	return (apply (car $args_) (car (cdr $args_))); } "apply";
 regist_subr $genv { param($args_);`
-	[void]($arr = new-object system.collections.arraylist);
+	[void]($vec = new-object vect);
 	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
 	{
-		[void]($arr.add((car $rest)));
+		[void]($vec.push((car $rest)));
 	}
-	return ,$arr;
+	return $vec;
 } "vect";
+regist_subr $genv { param($args_);`
+	[void]($queu = new-object queu);
+	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
+	{
+		[void]($queu.push((car $rest)));
+	}
+	return $queu;
+} "queu";
+regist_subr $genv { param($args_);
+	[void]($q = car $args_);
+	[void]$q.push((car (cdr $args_)));
+	return $q; } "pushqueu";
+regist_subr $genv { param($args_);
+	return (car $args_).pop(); } "popqueu";
 regist_subr $genv { param($args_);`
 	$acc = 0;
 	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
@@ -778,6 +1026,7 @@ regist_subr $genv { param($args_);`
 	if (isnil $args_) { return 0; }
 	if (-not (isnum (car $args_)))
 	{
+		write-host "debug: sub error car: $((car $args_).gettype())";
 		lthrow $erroid["Type"] ("cannot sub " + (lprint $args_));
 	}
 	$acc = car $args_;
@@ -785,6 +1034,7 @@ regist_subr $genv { param($args_);`
 	{
 		if (-not (isnum (car $rest)))
 		{
+			write-host "debug: sub error: $((car $rest).gettype())";
 			lthrow $erroid["Type"] ("cannot sub " + (lprint $args_));
 		}
 		$acc -= (car $rest);
@@ -856,42 +1106,22 @@ regist_subr $genv { param($args_);`
 } ">";
 regist_subr $genv { param($args_); return (tolist (car $args_)); } "to-list";
 regist_subr $genv { param($args_); return (tovect (car $args_)); } "to-vect";
+regist_subr $genv { param($args_); return (toqueu (car $args_)); } "to-queu";
 regist_subr $genv { param($args_); return (symbol (car $args_)); } "symbol";
-regist_subr $genv { param($args_);
-	$str = "";
-	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
-	{
-		$obj = car $rest;
-		if ($obj -is [string])
-		{
-			$str += $obj;
-		}
-		else
-		{
-			$str += lprint $obj;
-		}
-	};
-	return $str; } "sprint";
+regist_subr $genv { param($args_); return (sprint $args_); } "sprint";
 regist_subr $genv { param($args_); return (load (car $args_)); } "load";
 regist_subr $genv { param($args_); lthrow (car $args_) (car (cdr $args_)); } "throw";
 regist_subr $genv { param($args_); return (empty (car $args_)); } "empty";
 regist_subr $genv { param($args_);
-	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
-	{
-		write-host -nonewline (lprint (car $rest));
-	}
+	write-host -nonewline (sprint $args_);
 	return $nil; } "prin";
 regist_subr $genv { param($args_);
-	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)
-	{
-		write-host -nonewline (lprint (car $rest));
-	}
-	write-host "";
+	write-host (sprint $args_);
 	return $nil; } "print";
 regist_subr $genv { param($args_);
 	return (ltype (car $args_)); } "type";
 regist_subr $genv { param($args_); return (getat (car $args_) (car (cdr $args_))) } "getat";
-regist_subr $genv { param($args_); return (setat (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_)))) } "setat";
+regist_subr $genv { param($args_);return (setat (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_)))); } "setat";
 
 regist_spfm $genv { param($args_, $env);`
 	(lif $env (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_))))} "if";
@@ -938,6 +1168,7 @@ regist_spfm $genv { param($args_, $env);
 		$eid = [int]($ex[1]);
 		return (apply (leval (car $args_) $env) (list $eid ($ex[2..($ex.length - 1)] -join ",")));
 	}} "catch";
+regist_spfm $genv { param($args_, $env); return $env; } "environment";
 # TODO
 
 
@@ -985,7 +1216,7 @@ function lread ($src)
 		elseif ("(" -eq $c)
 		{
 			[void](growth $tree $buff);
-			[void]($co = find_co_paren $src.substring($idx + 1, $len - $idx - 1));
+			[void]($co = find_co_paren $src.substring($idx + 1));
 			[void]($tree.add(`
 						(wrap_readmacros (lread $src.substring($idx + 1, $co))`
 						 $buff[1])));
@@ -999,7 +1230,7 @@ function lread ($src)
 		elseif ("[" -eq $c)
 		{
 			[void](growth $tree $buff);
-			[void]($co = find_co_brackets $src.substring($idx + 1, $len - $idx - 1));
+			[void]($co = find_co_brackets $src.substring($idx + 1));
 			if ($buff[1])
 			{
 				[void]($tree.add((list (new-object symb "to-vect")`
@@ -1024,7 +1255,7 @@ function lread ($src)
 			{
 				[void]($ltree = array2cons $tree);
 				[void](rplacd (last $ltree)`
-					(car (lread $src.substring($idx + 1, $len - $idx - 1))));
+					(car (lread $src.substring($idx + 1))));
 				return $ltree;
 			}
 			$buff[0] += $c;
@@ -1032,7 +1263,7 @@ function lread ($src)
 		elseif ("`"" -eq $c)
 		{
 			[void](growth $tree $buff);
-			[void]($ret = take_string $src.substring($idx + 1, $len - $idx - 1));
+			[void]($ret = take_string $src.substring($idx + 1));
 			[void]($tree.add($ret[0]));
 			[void]($idx += $ret[1] + 1);
 		}
@@ -1175,6 +1406,14 @@ function lprint ($obj)
 		foreach ($a in $obj) { $str += ("" + (lprint $a) + " "); }
 		return $str.substring(0, $str.length - 1) + "]";
 	}
+	if ($obj -is [vect])
+	{
+		return (lprint (toarray $obj));
+	}
+	if ($obj -is [queu])
+	{
+		return "/" + (lprint $obj.exit) + "/";
+	}
 
 	return [string]$obj;
 }
@@ -1188,7 +1427,7 @@ function printcons ($a, $d)
 
 	if ($d -is [cons])
 	{
-		return "($sa " + $sd.substring(1, $sd.length - 1);
+		return "($sa " + $sd.substring(1);
 	}
 
 	return "(" + $sa + " . " + $sd + ")";

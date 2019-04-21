@@ -47,16 +47,16 @@
    (! let ((co (mal::find-co-paren code)))
 	  (cons (drop code (+ 1 co))
 			((lambda ((ntree nwraps nbuf))
-			   (mal::growth ntree nwraps (mal::read (take code co)) (queue)))
+			   (mal::growth ntree nwraps (mal::read (take code co)) (queu)))
 			 (mal::growth-from-buf tree wraps buf)))))
 
 (! mal::defreadmacro mal::c-paren
    (throw mal::error::syntax "found excess close parenthesis."))
 
 (! mal::defreadmacro mal::d-quote
-   (! let (((str restcode) (mal::take-string code (queue)))
+   (! let (((str restcode) (mal::take-string code (queu)))
 		   ((ntree nwraps nbuf) (mal::growth-from-buf tree wraps buf)))
-	  (list restcode (pushqueue ntree str) nwraps nbuf)))
+	  (list restcode (pushqueu ntree str) nwraps nbuf)))
 
 (! mal::defreadmacro mal::s-quote
    (cons code
@@ -85,8 +85,8 @@
 (! mal::defreadmacro mal::period
    (if (empty buf)
 	 (do (rplacd (last tree) (car (mal::read code)))
-	   	 (list nil tree nil (queue)))
-	 (list code tree wraps (pushqueue buf mal::period))))
+	   	 (list nil tree nil (queu)))
+	 (list code tree wraps (pushqueu buf mal::period))))
 
 (! mal::defreadmacro mal::o-bracket
    (! let ((co (mal::find-co-bracket code)))
@@ -98,10 +98,10 @@
 							  (list 'to-vect
 									(reduce (lambda (v e) (list e v))
 											wraps (mal::read (take code co))))
-							  (queue))
+							  (queu))
 				 (mal::growth ntree nil
 							  (cons 'vect (mal::read (take code co)))
-							  (queue))))
+							  (queu))))
 			 (mal::growth-from-buf tree wraps buf)))))
 
 (! mal::defreadmacro mal::c-bracket
@@ -215,7 +215,7 @@
 			 (equal mal::backslash (car code))
 			 (mal::take-string
 			   (cdr (cdr code))
-			   (pushqueue buf
+			   (pushqueu buf
 						  (! let ((c (car (cdr code))))
 							 (! cond ((equal char-a c) 7  ; \a
 								      (equal char-b c) 8  ; \b
@@ -226,14 +226,14 @@
 									  (equal char-v c) 11; \v
 									  (equal char-0 c) 0  ; \0
 									  t c)))))
-			 t (mal::take-string (cdr code) (pushqueue buf (car code)))))
+			 t (mal::take-string (cdr code) (pushqueu buf (car code)))))
 		 (throw mal::error::syntax "not found close double quote.")))))
 
 (define mal::growth
   (lambda (tree wraps obj)
-	(list (pushqueue tree (reduce (lambda (v e) (list e v)) wraps obj))
+	(list (pushqueu tree (reduce (lambda (v e) (list e v)) wraps obj))
 			   nil
-			   (queue))))
+			   (queu))))
 
 (define mal::growth-from-buf
   (! let ((read-tok
@@ -246,7 +246,7 @@
 					 t (symbol tok)))))))
 	 (lambda (tree wraps buf)
 	   (if (empty buf)
-		 (list tree wraps (queue))
+		 (list tree wraps (queu))
 		 (mal::growth tree wraps (read-tok (to-list buf)))))))
 
 (define mal::seekenv
@@ -300,9 +300,9 @@
 			(! aif (assocdr mal::+readmacros+ (car code))
 			   (read-rec (it (cdr code) tree wraps buf))
 			   (read-rec (list (cdr code) tree wraps
-							   (pushqueue buf (car code)))))
+							   (pushqueu buf (car code)))))
 			(to-list (car (mal::growth-from-buf tree wraps buf)))))))
-	 (lambda (str) (read-rec (list (to-list str) (queue) nil (queue))))))
+	 (lambda (str) (read-rec (list (to-list str) (queu) nil (queu))))))
 
 (define mal::readtop
   (lambda (str) (cons 'do (mal::read str))))

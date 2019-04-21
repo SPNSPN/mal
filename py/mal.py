@@ -845,11 +845,11 @@ def limport (path):
 def vect (*args):
 	return list(args)
 
-def queue (*args):
-	queu = Queu()
-	queu.exit = l(*args)
-	queu.entr = last(queu.exit)
-	return queu
+def queu (*args):
+	q = Queu()
+	q.exit = l(*args)
+	q.entr = last(q.exit)
+	return q
 
 def to_list (obj):
 	if isinstance(obj, list):
@@ -886,19 +886,19 @@ def to_vect (obj):
 		return []
 	raise Erro(ErroId.Type, "cannot cast {0} to VectT.".format(obj))
 
-def to_queue (obj):
+def to_queu (obj):
 	if isinstance(obj, Cons):
 		rest = obj
-		queu = Queu()
-		queu.exit = obj
-		queu.entr = last(obj)
-		return queu
+		q = Queu()
+		q.exit = obj
+		q.entr = last(obj)
+		return q
 	elif isinstance(obj, Symb):
-		return queue(*[ord(c) for c in obj.name])
+		return queu(*[ord(c) for c in obj.name])
 	elif isinstance(obj, str):
-		return queue(*[ord(c) for c in obj])
+		return queu(*[ord(c) for c in obj])
 	elif isinstance(obj, list):
-		return queue(*obj)
+		return queu(*obj)
 	elif isinstance(obj, Queu):
 		return obj
 	elif obj is nil:
@@ -1014,12 +1014,12 @@ def initenv ():
 	ienv = cons(cons(Symb("nconc"), nconc), ienv)
 	ienv = cons(cons(Symb("load"), lload), ienv)
 	ienv = cons(cons(Symb("vect"), vect), ienv)
-	ienv = cons(cons(Symb("queue"), queue), ienv)
-	ienv = cons(cons(Symb("pushqueue"), (lambda queu, val: queu.push(val))), ienv)
-	ienv = cons(cons(Symb("popqueue"), (lambda queu: queu.pop())), ienv)
+	ienv = cons(cons(Symb("queu"), queu), ienv)
+	ienv = cons(cons(Symb("pushqueu"), (lambda queu, val: queu.push(val))), ienv)
+	ienv = cons(cons(Symb("popqueu"), (lambda queu: queu.pop())), ienv)
 	ienv = cons(cons(Symb("to-list"), to_list), ienv)
 	ienv = cons(cons(Symb("to-vect"), to_vect), ienv)
-	ienv = cons(cons(Symb("to-queue"), to_queue), ienv)
+	ienv = cons(cons(Symb("to-queu"), to_queu), ienv)
 	ienv = cons(cons(Symb("symbol"), symbol), ienv)
 	ienv = cons(cons(Symb("sprint"), sprint), ienv)
 	ienv = cons(cons(Symb("apply"), lapply), ienv)

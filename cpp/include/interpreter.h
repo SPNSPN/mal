@@ -74,10 +74,10 @@ class Interpreter
 		Addr subr_setat (Addr);
 		Addr subr_throw (Addr);
 		Addr subr_symbol (Addr);
-		Addr subr_queue (Addr);
-		Addr subr_toqueue (Addr);
-		Addr subr_pushqueue (Addr);
-		Addr subr_popqueue (Addr);
+		Addr subr_queu (Addr);
+		Addr subr_toqueu (Addr);
+		Addr subr_pushqueu (Addr);
+		Addr subr_popqueu (Addr);
 		Addr subr_empty (Addr);
 		Addr subr_type (Addr);
 		Addr subr_apply (Addr);

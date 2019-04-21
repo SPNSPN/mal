@@ -52,10 +52,10 @@ Interpreter::Interpreter ()
 	subr.push_back(&Interpreter::subr_setat);
 	subr.push_back(&Interpreter::subr_throw);
 	subr.push_back(&Interpreter::subr_symbol);
-	subr.push_back(&Interpreter::subr_queue);
-	subr.push_back(&Interpreter::subr_toqueue);
-	subr.push_back(&Interpreter::subr_pushqueue);
-	subr.push_back(&Interpreter::subr_popqueue);
+	subr.push_back(&Interpreter::subr_queu);
+	subr.push_back(&Interpreter::subr_toqueu);
+	subr.push_back(&Interpreter::subr_pushqueu);
+	subr.push_back(&Interpreter::subr_popqueu);
 	subr.push_back(&Interpreter::subr_empty);
 	subr.push_back(&Interpreter::subr_type);
 	subr.push_back(&Interpreter::subr_apply);
@@ -233,24 +233,24 @@ Interpreter::Interpreter ()
 						, findidx<Subr>(subr, &Interpreter::subr_symbol)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
-				pool.make_cons(pool.make_symb("queue")
-					, pool.make_subr("queue"
-						, findidx<Subr>(subr, &Interpreter::subr_queue)))
+				pool.make_cons(pool.make_symb("queu")
+					, pool.make_subr("queu"
+						, findidx<Subr>(subr, &Interpreter::subr_queu)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
-				pool.make_cons(pool.make_symb("to-queue")
-					, pool.make_subr("to-queue"
-						, findidx<Subr>(subr, &Interpreter::subr_toqueue)))
+				pool.make_cons(pool.make_symb("to-queu")
+					, pool.make_subr("to-queu"
+						, findidx<Subr>(subr, &Interpreter::subr_toqueu)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
-				pool.make_cons(pool.make_symb("pushqueue")
-					, pool.make_subr("pushqueue"
-						, findidx<Subr>(subr, &Interpreter::subr_pushqueue)))
+				pool.make_cons(pool.make_symb("pushqueu")
+					, pool.make_subr("pushqueu"
+						, findidx<Subr>(subr, &Interpreter::subr_pushqueu)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
-				pool.make_cons(pool.make_symb("popqueue")
-					, pool.make_subr("popqueue"
-						, findidx<Subr>(subr, &Interpreter::subr_popqueue)))
+				pool.make_cons(pool.make_symb("popqueu")
+					, pool.make_subr("popqueu"
+						, findidx<Subr>(subr, &Interpreter::subr_popqueu)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
 				pool.make_cons(pool.make_symb("empty")
@@ -919,7 +919,7 @@ Addr Interpreter::subr_symbol (Addr args)
 			+ std::string(" to SymbT.")));
 }
 
-Addr Interpreter::subr_queue (Addr args)
+Addr Interpreter::subr_queu (Addr args)
 {
 	Addr queu = pool.make_queu();
 	for (Addr rest = args
@@ -931,7 +931,7 @@ Addr Interpreter::subr_queue (Addr args)
 	return queu;
 }
 
-Addr Interpreter::subr_toqueue (Addr args)
+Addr Interpreter::subr_toqueu (Addr args)
 {
 	Addr coll = pool.getcar(args);
 	Byte typ = pool.type(coll);
@@ -951,7 +951,7 @@ Addr Interpreter::subr_toqueue (Addr args)
 			or Pool::StrnT == typ
 			or Pool::SymbT == typ)
 	{
-		return subr_toqueue(pool.make_cons(subr_tolist(args), Pool::nil));
+		return subr_toqueu(pool.make_cons(subr_tolist(args), Pool::nil));
 	}
 
 	if (Pool::QueuT == typ)
@@ -964,7 +964,7 @@ Addr Interpreter::subr_toqueue (Addr args)
 			+ std::string(" to QueuT.")));
 }
 
-Addr Interpreter::subr_pushqueue (Addr args)
+Addr Interpreter::subr_pushqueu (Addr args)
 {
 	// typecheck
 	Addr queu = pool.getcar(args);
@@ -973,7 +973,7 @@ Addr Interpreter::subr_pushqueue (Addr args)
 	return queu;
 }
 
-Addr Interpreter::subr_popqueue (Addr args)
+Addr Interpreter::subr_popqueu (Addr args)
 {
 	// typecheck
 	Addr queu = pool.getcar(args);
