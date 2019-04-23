@@ -1,19 +1,23 @@
 #! /usr/bin/env python3
-from mal import *
+from interpreter import *
 
 def CHECK (code, succ):
+	sys.stdout.write("CHECK: \"{0}\" -> ".format(code))
+	sys.stdout.flush()
 	s = lprint(leval(cons(Symb("do"), lread(code)), genv))
-	print("CHECK: \""+ code + "\" => " + s)
+	print(s)
 	if succ and s != succ:
 		print("Fail CHECK.")
 		exit()
 
 def ECHECK (code, ceid, succ):
+	sys.stdout.write("ECHECK: \"{0}\" -> ".format(code))
+	sys.stdout.flush()
 	try:
 		s = lprint(leval(cons(Symb("do"), lread(code)), genv))
-		print("ECHECK: {0} -> {1}".format(code, s))
+		print(s)
 	except Erro as erro:
-		print("ECHECK: {0} -> <Erro \"{1}\">".format(code, erro.message))
+		print("<Erro \"{0}\">".format(erro.message))
 		if ceid != erro.eid:
 			raise Erro(444, "expect code: {0}, but got code: {1}".format(
 						ceid, erro.eid))

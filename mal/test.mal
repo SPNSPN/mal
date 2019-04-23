@@ -2,27 +2,29 @@
 
 (define check
   (lambda (code succ)
-	(! let ((result (mal::eval (mal::readtop code) (environment))))
-	   (do (print "CHECK: " code " -> " result)
-		 (if (equal result succ) nil (throw 44 "Fail!"))))))
+	(do (prin "CHECK: \"" code "\" -> ")
+	  (! let ((result (mal::eval (mal::readtop code) (environment))))
+	   (do (print result)
+		 (if (equal result succ) nil (throw 44 "Fail!")))))))
 
 (define echeck
   (lambda (code ceid succ)
-	(catch (lambda (eid message)
-				 (do (print "ECHECK: " code " -> <Erro \"" message "\">")
+	(do (prin "ECHECK: \"" code "\" -> ")
+	  (catch (lambda (eid message)
+				 (do (print "<Erro \"" message "\">")
 				   (if (and (equal ceid eid) (equal message succ))
 					 nil
 					 (throw 444 (sprint "expect code: " ceid
 										", but got code: " eid)))))
-		   (do (! let ((result (mal::eval (mal::readtop code) (environment))))
-				  (print "ECHECK: " code " -> " result))
-			   (throw 4444 "NEFail!")))))
+		   (do (print (mal::eval (mal::readtop code) (environment)))
+			   (throw 4444 "NEFail!"))))))
 
 (define vcheck
   (lambda (code succ)
-	(! let ((result ((derxi::vm code) 'run)))
-	   (do (print "VCHECK: " code " -> " result)
-		 (if (equal result succ) nil (throw 44 "Fail!"))))))
+	(do (prin "VCHECK: " code " -> ")
+	  (! let ((result ((derxi::vm code) 'run)))
+	   (do (print result)
+		 (if (equal result succ) nil (throw 44 "Fail!")))))))
 
 (define evcheck
   (lambda (code ceid succ)
