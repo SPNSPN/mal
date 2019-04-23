@@ -287,13 +287,6 @@ def ldefine (env, args):
 		rplaca(genv, cons(cons(sym, leval(car(cdr(args)), env)), car(genv)))
 	else:
 		rplacd(asc, leval(car(cdr(args)), env))
-
-#	idx = associdx(car(genv), sym)
-#	if idx is None:
-#		rplaca(genv, cons(cons(sym, leval(car(cdr(args)), env)), car(genv)))
-#	else:
-#		rplaca(genv, cons(cons(sym, leval(car(cdr(args)), env))
-#				, append(take(car(genv), idx), drop(car(genv), idx + 1))))	
 	return sym
 
 def lsetq (env, args):
@@ -304,12 +297,6 @@ def lsetq (env, args):
 		if not asc is None:
 			rplacd(asc, leval(car(cdr(args)), env))
 			return sym
-
-#		idx = associdx(car(rest), sym)
-#		if not idx is None:
-#			rplaca(rest, cons(cons(sym, leval(car(cdr(args)), env))
-#						, append(take(car(rest), idx), drop(car(rest), idx + 1))))	
-#			return sym
 		rest = cdr(rest)
 	raise Erro(ErroId.Symbol, lprint(sym) + " is not defined.")
 
