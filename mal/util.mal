@@ -377,9 +377,9 @@
 						(string q))
 					  (if (equal 10 c)
 						(string q)
-						(getline-rec (pushqueue q c))))))))
+						(getline-rec (pushqueu q c))))))))
 	 (lambda ()
-	   (getline-rec (queue)))))
+	   (getline-rec (queu)))))
 
 (define purelistp
   (lambda (obj)

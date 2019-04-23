@@ -174,23 +174,20 @@
 			  (lambda (command)
 				(! cond
 				   ((eq 'step command) (if code ((nth ops (! pop code))))
-									   (eq 'dump command)
-									   (sprint "stak: " stak
+				    (eq 'dump command) (sprint "stak: " stak
 											   (string (vect mal::newline))
 											   "envi: " envi
 											   (string (vect mal::newline))
 											   "code: " code
 											   (string (vect mal::newline))
 											   "kont: " kont)
-									   (eq 'run command) (run-rec)
-									   (eq 'stak command) stak
-									   (eq 'envi command) envi
-									   (eq 'code command) code
-									   (eq 'kont command) kont
-									   (eq 'ops command) ops
-									   t (throw 11
-												(sprint "unknown command: "
-														command))))))))))
+				    (eq 'run command) (run-rec)
+				    (eq 'stak command) stak
+				    (eq 'envi command) envi
+					(eq 'code command) code
+					(eq 'kont command) kont
+					(eq 'ops command) ops
+					t (throw 11 (sprint "unknown command: " command))))))))))
 
 
 (define derxi::nil  0)
