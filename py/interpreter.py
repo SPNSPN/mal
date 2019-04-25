@@ -336,7 +336,7 @@ def expand_quasiquote (expr, env):
 	return to_list(eexpr)
 
 def attr (env, args):
-	ret = car(args)
+	ret = leval(car(args), env)
 	rest = cdr(args)
 	while not isnil(rest):
 		ret = ret.__dict__[car(rest).name]
