@@ -339,7 +339,7 @@ def attr (env, args):
 	ret = leval(car(args), env)
 	rest = cdr(args)
 	while not isnil(rest):
-		ret = ret.__dict__[car(rest).name]
+		ret = getattr(ret, car(rest).name)
 		rest = cdr(rest)
 	return ret
 
