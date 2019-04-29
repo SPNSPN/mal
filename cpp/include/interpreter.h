@@ -62,6 +62,8 @@ class Interpreter
 		Addr subr_mod (Addr);
 		Addr subr_gt (Addr);
 		Addr subr_lt (Addr);
+		Addr subr_int (Addr);
+		Addr subr_float (Addr);
 		Addr subr_list (Addr);
 		Addr subr_print (Addr);
 		Addr subr_prin (Addr);

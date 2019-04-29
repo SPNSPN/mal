@@ -1300,6 +1300,12 @@ int main (int argc, char **argv)
 	ITP_CHECK("(< 3 2 4)", "NIL");
 	ITP_CHECK("(> 3 2 1)", "T");
 	ITP_CHECK("(> 3 5 1)", "NIL");
+	ITP_CHECK("(int 2.0)", "2");
+	ITP_CHECK("(int -555.3)", "-555");
+	ITP_CHECK("(int 123)", "123");
+	ITP_CHECK("(float 4)", "4.000000");
+	ITP_CHECK("(float -1555)", "-1555.000000");
+	ITP_CHECK("(float -15.356)", "-15.356000");
 	ITP_CHECK("(if nil 40 (if t 42 41))", "42");
 	ITP_CHECK("(if 0 1 2)", "1");
 	ITP_CHECK("(if \"\" 1 2)", "1");
@@ -1397,6 +1403,8 @@ int main (int argc, char **argv)
 	ITP_CHECK("(* [] 2)", "<Erro \"cannot mul ([] 2)\">");
 	ITP_CHECK("(/ 3 \"a\")", "<Erro \"cannot div (3 \"a\")\">");
 	ITP_CHECK("(% 3 nil)", "<Erro \"cannot mod (3 NIL)\">");
+	ITP_CHECK("(int 'sym)", "<Erro \"cannot cast sym to InumT.\">");
+	ITP_CHECK("(float \"str\")", "<Erro \"cannot cast \"str\" to FnumT.\">");
 	ITP_CHECK("(empty ())", "T");
 	ITP_CHECK("(empty [])", "T");
 	ITP_CHECK("(empty (queu))", "T");

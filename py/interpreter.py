@@ -247,6 +247,20 @@ def le (head, *nums):
 			return nil
 	return t
 
+def lint (n):
+	if isinstance(n, int):
+		return n
+	if isinstance(n, float):
+		return int(n)
+	raise Erro(ErroId.Type, "cannot cast {0} to InumT.".format(lprint(n)))
+
+def lfloat (n):
+	if isinstance(n, float):
+		return n
+	if isinstance(n, int):
+		return float(n)
+	raise Erro(ErroId.Type, "cannot cast {0} to FnumT.".format(lprint(n)))
+
 def ltype (o):
 	if isinstance(o, Cons):
 		return Symb("<cons>")
@@ -866,7 +880,7 @@ def to_list (obj):
 		return obj
 	elif obj is nil:
 		return obj
-	raise Erro(ErroId.Type, "cannot cast {0} to ConsT.".format(obj))
+	raise Erro(ErroId.Type, "cannot cast {0} to ConsT.".format(lprint(obj)))
 
 def to_vect (obj):
 	if isinstance(obj, Cons):
@@ -886,7 +900,7 @@ def to_vect (obj):
 		return obj
 	elif obj is nil:
 		return []
-	raise Erro(ErroId.Type, "cannot cast {0} to VectT.".format(obj))
+	raise Erro(ErroId.Type, "cannot cast {0} to VectT.".format(lprint(obj)))
 
 def to_queu (obj):
 	if isinstance(obj, Cons):
@@ -905,7 +919,7 @@ def to_queu (obj):
 		return obj
 	elif obj is nil:
 		return Queu()
-	raise Erro(ErroId.Type, "cannot cast {0} to QueuT.".format(obj))
+	raise Erro(ErroId.Type, "cannot cast {0} to QueuT.".format(lprint(obj)))
 
 def symbol (obj):
 	if isinstance(obj, Cons):
@@ -923,7 +937,7 @@ def symbol (obj):
 		return Symb(obj)
 	elif isinstance(obj, Symb):
 		return obj
-	raise Erro(ErroId.Type, "cannot cast {0} to SymbT.".format(obj))
+	raise Erro(ErroId.Type, "cannot cast {0} to SymbT.".format(lprint(obj)))
 
 def sprint (*args):
 	strn = ""
@@ -1012,6 +1026,8 @@ def initenv ():
 	ienv = cons(cons(Symb(">="), ge), ienv)
 	ienv = cons(cons(Symb("<"), lt), ienv)
 	ienv = cons(cons(Symb("<="), le), ienv)
+	ienv = cons(cons(Symb("int"), lint), ienv)
+	ienv = cons(cons(Symb("float"), lfloat), ienv)
 	ienv = cons(cons(Symb("reverse"), reverse), ienv)
 	ienv = cons(cons(Symb("append"), append), ienv)
 	ienv = cons(cons(Symb("take"), take), ienv)

@@ -40,6 +40,8 @@ Interpreter::Interpreter ()
 	subr.push_back(&Interpreter::subr_mod);
 	subr.push_back(&Interpreter::subr_gt);
 	subr.push_back(&Interpreter::subr_lt);
+	subr.push_back(&Interpreter::subr_int);
+	subr.push_back(&Interpreter::subr_float);
 	subr.push_back(&Interpreter::subr_list);
 	subr.push_back(&Interpreter::subr_print);
 	subr.push_back(&Interpreter::subr_prin);
@@ -171,6 +173,16 @@ Interpreter::Interpreter ()
 				pool.make_cons(pool.make_symb("<")
 					, pool.make_subr("lt"
 						, findidx<Subr>(subr, &Interpreter::subr_lt)))
+				, pool.getcar(genv)));
+	pool.setcar(genv, pool.make_cons(
+				pool.make_cons(pool.make_symb("int")
+					, pool.make_subr("int"
+						, findidx<Subr>(subr, &Interpreter::subr_int)))
+				, pool.getcar(genv)));
+	pool.setcar(genv, pool.make_cons(
+				pool.make_cons(pool.make_symb("float")
+					, pool.make_subr("float"
+						, findidx<Subr>(subr, &Interpreter::subr_float)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
 				pool.make_cons(pool.make_symb("list")
@@ -700,6 +712,36 @@ Addr Interpreter::subr_lt (Addr args)
 		}
 	}
 	return pool.t;
+}
+
+Addr Interpreter::subr_int (Addr args)
+{
+	Addr num = pool.getcar(args);
+	Byte typ = pool.type(num);
+	if (Pool::InumT == typ) { return num; }
+	if (Pool::FnumT == typ)
+	{
+		return pool.make_inum((Fixnum)(pool.getfnum(num)));
+	}
+
+	return pool.make_erro(Type
+			, pool.make_strn(std::string("cannot cast ") + print(num)
+				+ std::string(" to InumT.")));
+}
+
+Addr Interpreter::subr_float (Addr args)
+{
+	Addr num = pool.getcar(args);
+	Byte typ = pool.type(num);
+	if (Pool::FnumT == typ) { return num; }
+	if (Pool::InumT == typ)
+	{
+		return pool.make_fnum((float)(pool.getnum(num)));
+	}
+
+	return pool.make_erro(Type
+			, pool.make_strn(std::string("cannot cast ") + print(num)
+				+ std::string(" to FnumT.")));
 }
 
 Addr Interpreter::subr_list (Addr args)
