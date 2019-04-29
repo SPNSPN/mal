@@ -1102,6 +1102,18 @@ regist_subr $genv { param($args_);`
 	}
 	return $t;
 } ">";
+regist_subr $genv { param($args_);
+	$n = (car $args_);
+	if ("<inum>" -eq (ltype $n).name) { return $n; }
+	if ("<fnum>" -eq (ltype $n).name) { return [int]$n; }
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $n) + " to InumT.");
+} "int";
+regist_subr $genv { param($args_);
+	$n = (car $args_);
+	if ("<fnum>" -eq (ltype $n).name) { return $n; }
+	if ("<inum>" -eq (ltype $n).name) { return [double]$n; }
+	lthrow $erroid["Type"] ("cannot cast " + (lprint $n) + " to FnumT.");
+} "float";
 regist_subr $genv { param($args_); return (tolist (car $args_)); } "to-list";
 regist_subr $genv { param($args_); return (tovect (car $args_)); } "to-vect";
 regist_subr $genv { param($args_); return (toqueu (car $args_)); } "to-queu";
