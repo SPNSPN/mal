@@ -7,6 +7,16 @@
 			(cond (cdr (cdr form))))
 	  nil)))
 
+(define case
+  (lambda (expr form)
+	((lambda (e)
+	   (if form
+		 `(if (or (eq ,(car form) t) (equal ,(car form) ,e))
+			,(car (cdr form))
+			,(case expr (cdr (cdr form))))
+		 nil))
+	 expr)))
+
 (define not (lambda (a) (if a nil t)))
 
 (define some
@@ -138,6 +148,20 @@
 		(rplaca coll val))
 	  nil)))
 
+(define updatenth
+  (lambda (coll n val)
+	(if coll
+	  (if (> n 0)
+		(cons (car coll) (updatenth (cdr coll) (- n 1) val))
+		(cons val (cdr coll)))
+	  nil)))
+
+(define updatenth-in
+  (lambda (coll ns val)
+	(if ns
+	  (updatenth coll (car ns) (updatenth-in (nth coll (car ns)) (cdr ns) val))
+	  val))) ; TODO
+
 (define length
   (! letrec
 		  ((length-rec
@@ -263,6 +287,17 @@
 						   (cons (car coll) acc))))))
 		  (lambda (coll n) (split-rec coll n nil))))
 
+(define split-if
+  (! letrec ((split-if-rec
+			   (lambda (coll pred res-head res-tail)
+				 (if coll
+				   (if (pred (car coll))
+					 (split-if-rec (cdr coll) pred nil (cons (reverse res-head) res-tail))
+					 (split-if-rec (cdr coll) pred (cons (car coll) res-head) res-tail))
+				   (reverse (cons (reverse res-head) res-tail))))))
+	 (lambda (coll pred)
+	   (split-if-rec coll pred nil nil))))
+
 (define range
   (! letrec
 		  ((range-rec
@@ -326,7 +361,7 @@
 
 (define string
   (lambda (s)
-	(sprint  (symbol s))))
+	(sprint (symbol s))))
 
 (define defclass
   (lambda (class-name . records)
@@ -414,4 +449,42 @@
 (define purelistp
   (lambda (obj)
 	(not (cdr (last obj)))))
+
+(define uppercase-p
+  (! let ((A (- (car (to-list "A")) 1))
+		  (Z (+ (car (to-list "Z")) 1)))
+	 (lambda (str)
+	   (! let ((c (car (to-list str))))
+		  (and (< A c) (< c Z))))))
+
+(define incf
+  (lambda (var)
+	`(do (setq var (+ var 1)) var)))
+
+(define decf
+  (lambda (var)
+	`(do (setq var (- var 1)) var)))
+
+(define times
+  (lambda (n val)
+	(map (lambda (i) val) (range 0 n))))
+
+(define split
+  (! letrec ((split-rec
+			   (lambda (rest sl sllen res-head res-tail)
+				 (if rest
+				   (if (equal (take rest sllen) sl)
+					 (split-rec (drop rest sllen) sl sllen nil (cons (string (reverse res-head)) res-tail))
+					 (split-rec (cdr rest) sl sllen (cons (car rest) res-head) res-tail))
+				   (reverse (cons (string (reverse res-head)) res-tail))))))
+	 (lambda (str s) (split-rec (to-list str) (to-list s) (length (to-list s)) nil nil))))
+
+(define join
+  (! letrec ((join-rec
+			   (lambda (rest s str)
+				 (if rest
+				   (join-rec (cdr rest) s (sprint str s (car rest)))
+				   str))))
+	 (lambda (coll s)
+	   (if coll (join-rec (cdr coll) s (car coll)) ""))))
 

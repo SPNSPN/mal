@@ -1,0 +1,79 @@
+(load "mal/util.mal")
+
+(define prolog::+environment+ nil)
+
+(define prolog::type
+  (lambda (term)
+	(! case (type term)
+	   ('<cons> 'prolog::strc
+		'<symb> (if (eq '_ term)
+				  'prolog::wild
+				  (if (uppercase-p term)
+					'prolog::vari 'prolog::symb))
+		'<inum> 'prolog::numb
+		'<fnum> 'prolog::numb
+		'<nil> 'prolog::nil
+		t (type term)))))
+
+(define prolog::assert
+  (lambda (term)
+	(! push prolog::+environment+ term)))
+
+(define prolog::merge
+  (! letrec ((merge-rec
+			   (lambda (unia unib)
+				 (if unia 
+				   (! let ((gard (assocdr unib (car (car unia)))))
+					  (if gard
+						(! aif (prolog::unify (cdr (car unia)) gard)
+						   (merge-rec (cdr unia) (if (eq t it)
+												   unib
+												   (append it unib)))
+						   nil)
+						(prolog::merge (cdr unia) (cons (car unia) unib))))
+				   unib))))
+	 (lambda (unia unib)
+	   (if (eq t unia)
+		 unib
+		 (if (eq t unib)
+		   unia
+		   (merge-rec unia unib))))))
+
+(define prolog::unify
+  (lambda (terma termb)
+	(! let ((typa (prolog::type terma))
+			(typb (prolog::type termb)))
+	   (if (or (eq 'prolog::wild typa) (eq 'prolog::wild typb))
+		 t
+		 (if (eq 'prolog::vari typa)
+		   (list (cons terma termb))
+		   (if (eq 'prolog::vari typb)
+			 (list (cons termb terma))
+			 (! case typa
+				('prolog::symb (equal terma termb)
+				 'prolog::numb (equal terma termb)
+				 'prolog::nil (eq 'prolog::nil typb)
+				 'prolog::strc (if (eq 'prolog::strc typb)
+								 (! let ((unia (prolog::unify
+												 (car terma) (car termb)))
+										 (unib (prolog::unify
+												 (cdr terma) (cdr termb))))
+									(if (and unia unib)
+									  (prolog::merge unia unib))))))))))))
+
+(define prolog::cut
+  ()) ; TODO
+
+(define prolog::and
+  (lambda terms
+	)) ; TODO
+
+(define prolog::or
+  (lambda terms
+	)) ; TODO
+
+(define prolog::solve
+  (lambda (term)
+	(find-if (lambda (asserted) (prolog::unify asserted term))
+			 prolog::+environment+)))
+

@@ -88,7 +88,7 @@ class queu
 		}
 		else
 		{
-			rplacd $this.entr $c;
+			[void](rplacd $this.entr $c);
 			$this.entr = $c;
 		}
 		return $this;
@@ -852,6 +852,18 @@ function mapeval ($objs, $env)
 	return $eobjs;
 }
 
+$getc_buf = (cons "" $nil);
+function getc ()
+{	if (-not (car $getc_buf))
+	{
+		[void](rplaca $getc_buf (tolist ((read-host) + "`n")));
+	}
+
+	[void]($c = car (car $getc_buf));
+	[void](rplaca $getc_buf (cdr (car $getc_buf)));
+	return $c;
+}
+
 
 
 function lif ($env, $pred, $then, $else)
@@ -875,11 +887,11 @@ function define ($env, $sym, $val)
 	$record = (assoc (car (last $env)) $sym);
 	if (isnil $record)
 	{
-		rplaca (last $env) (cons (cons $sym (leval $val $env)) (car (last $env)));
+		[void](rplaca (last $env) (cons (cons $sym (leval $val $env)) (car (last $env))));
 	}
 	else
 	{
-		rplacd $record (leval $val $env);
+		[void](rplacd $record (leval $val $env));
 	}
 
 	return $sym;
@@ -894,7 +906,7 @@ function setq ($env, $sym, $val)
 	}
 	else
 	{
-		rplacd $record (leval $val $env);
+		[void](rplacd $record (leval $val $env));
 	}
 
 	return $sym;
@@ -1132,6 +1144,8 @@ regist_subr $genv { param($args_);
 	return (ltype (car $args_)); } "type";
 regist_subr $genv { param($args_); return (getat (car $args_) (car (cdr $args_))) } "getat";
 regist_subr $genv { param($args_);return (setat (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_)))); } "setat";
+regist_subr $genv { param($args_); return (getc); } "getc";
+
 
 regist_spfm $genv { param($args_, $env);`
 	(lif $env (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_))))} "if";
@@ -1149,7 +1163,19 @@ regist_spfm $genv { param($args_, $env);`
 regist_spfm $genv { param($args_, $env);
 	return (expand_quasiquote (car $args_) $env); } "quasiquote";
 regist_spfm $genv { param($args_, $env);`
-	return iex (car $args_); } "ps";
+	$expr = car $args_;
+	if ($expr -is [symb]) { return iex (car $args_).name; }
+	return iex (car $args_);
+} "ps";
+regist_spfm $genv { param($args_, $env);
+	$ret = leval (car $args_) $genv;
+	for ($rest = cdr $args_; -not (atom $rest); $rest = cdr $rest)
+	{
+		write-host "debug: ", (lprint (car $rest));
+		[void]($ret = $ret.((car $rest).name));
+	}
+	return $ret;
+} "->";
 regist_spfm $genv { param($args_, $env);
 	if (isnil $args_) { return $t; }
 	$rest = $args_;
@@ -1441,5 +1467,25 @@ function printcons ($a, $d)
 	}
 
 	return "(" + $sa + " . " + $sd + ")";
+}
+
+function repl ()
+{
+	while ($True)
+	{
+		try
+		{
+			write-host -nonewline "mal> ";
+			$in = (read-host);
+			if (-not $in) { return; }
+			write-host (lprint (leval (lreadtop $in) $genv));
+		}
+		catch
+		{
+			$ex = $_.exception -split ",";
+			$eid = [int]($ex[1]);
+			write-host ("<Erro " + (lprint ($ex[2..($ex.length - 1)] -join ",")) + ">");
+		}
+	}
 }
 

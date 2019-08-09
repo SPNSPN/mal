@@ -1,0 +1,20 @@
+(load "mal/tic-tac-toe/game.mal")
+
+; CAUTION depthを偶数にすると自分の手番(teamsの先頭要素)から探索する
+;         奇数にすると相手の手番(teamsの2番目要素)から探索する
+;         相手の手番のときは相手から見た評価値になるので注意(正負が逆)
+(define tic-tac-toe::minmax
+  (lambda (board teams depth)
+	(! let ((actor (nth teams (% depth 2)))
+			(winner (tic-tac-toe::end-p board)))
+	   (if winner
+		 (if (eq winner (car teams)) 100 -100)
+		 (if (< depth 1)
+		   0
+		   (- 1 ((if (eq (car teams) actor) max-in min-in)
+				 (map (lambda (way)
+						(tic-tac-toe::minmax
+						  (tic-tac-toe::apply board way)
+						  teams (- depth 1)))
+					  (tic-tac-toe::symmetric-ways board actor)))))))))
+

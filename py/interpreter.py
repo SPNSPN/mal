@@ -937,6 +937,8 @@ def symbol (obj):
 		return Symb(obj)
 	elif isinstance(obj, Symb):
 		return obj
+	elif obj is nil:
+		return Symb("")
 	raise Erro(ErroId.Type, "cannot cast {0} to SymbT.".format(lprint(obj)))
 
 def sprint (*args):

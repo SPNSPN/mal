@@ -1,0 +1,166 @@
+(load "mal/util.mal")
+(load "mal/math.mal")
+
+(define tic-tac-toe::make-board
+  (lambda (size)
+	(! letrec ((make-cell (lambda (x y board)
+						 (if (< y 0)
+						   board
+						   (if (< x 1)
+							 (make-cell (- size 1)
+										(- y 1)
+										(cons (cons (list x y) " ")
+											  board))
+							 (make-cell (- x 1)
+										y
+										(cons (cons (list x y) " ")
+											  board)))))))
+	   (cons (cons 'size size)
+			 (make-cell (- size 1) (- size 1) nil)))))
+
+(define tic-tac-toe::display
+  (lambda (board)
+	(! let* ((lens (range 0 (assocdr board 'size)))
+			 (newline-bar (apply sprint
+								 (cons "+" (map (lambda () "-+") lens)))))
+	   (do (map (lambda (y)
+				  (do (print newline-bar)
+					  (map (lambda (x)
+						 (prin "|" (assocdr board (list x y)))) lens)
+					  (print "|")))
+				lens)
+		   (print newline-bar)
+		   nil))))
+
+(define tic-tac-toe::apply
+  (lambda (board way)
+	(update board (take way 2) (car (cdr (cdr way))))))
+
+(define tic-tac-toe::ways
+  (lambda (board team)
+	(! let ((lens (range 0 (assocdr board 'size))))
+	   (mapcat (lambda (y)
+			  (mapcat (lambda (x)
+					 (if (equal " " (assocdr board (list x y)))
+					   (list (list x y team))))
+				   lens))
+			lens))))
+
+(define tic-tac-toe::symmetric-ways
+  (! let ((half-lens (lambda (size)
+					   (range 0 (int (math::ceil (/ size 2.0))))))
+		  (check-cell
+			   (lambda (board team x y)
+				 (if (equal " " (assocdr board (list x y)))
+				   (list (list x y team))))))
+	 (! let ((vertical-symmetry
+			   (lambda (board size)
+					(not (find-if
+						   (lambda (x)
+							 (find-if
+							   (lambda (y)
+								 (not (= (assocdr board (list x y))
+										 (assocdr board
+												  (list x (- size y 1))))))
+							   (half-lens size)))
+						   (range 0 size)))))
+			 (horizontal-symmetry
+			   (lambda (board size)
+					(not (find-if
+						   (lambda (x)
+							 (find-if
+							   (lambda (y)
+								 (not (= (assocdr board (list x y))
+										 (assocdr board
+												  (list (- size x 1) y)))))
+							   (range 0 size)))
+						   (half-lens size)))))
+			 (diagonal-symmetry-lefttop
+			   (lambda (board size)
+					(not (find-if
+						   (lambda (x)
+							 (find-if
+							   (lambda (y)
+								 (not (= (assocdr board (list x y))
+										 (assocdr board
+												  (list (- size x 1)
+														(- size y 1))))))
+							   (range 0 (- size x 1))))
+						   (range 0 (- size 1))))))
+			 (diagonal-symmetry-righttop
+			   (lambda (board size)
+					(not (find-if
+						   (lambda (x)
+							 (find-if
+							   (lambda (y)
+								 (not (= (assocdr board
+												  (list x y))
+										 (assocdr board
+												  (list (- size x 1)
+														(- size y 1))))))
+							   (range (+ x 1) size)))
+						   (range 0 (- size 1))))))
+			 (check-cells
+			   (lambda (board team xlens ylens)
+				 (mapcat (lambda (x)
+						   (mapcat (lambda (y)
+									 (check-cell board team x y))
+								   ylens))
+						 xlens))))
+		(lambda (board team)
+		  (! let* ((size (assocdr board 'size))
+				   (lens (range 0 size))
+				   (hlens (half-lens size)))
+			 (! cond
+				((vertical-symmetry board size)
+				  (if (horizontal-symmetry board size)
+					(check-cells board team hlens hlens)
+					(check-cells board team lens hlens))
+				 (horizontal-symmetry board size)
+				  (check-cells board team hlens lens)
+				 (diagonal-symmetry-lefttop board size)
+				  (mapcat (lambda (x)
+							(mapcat (lambda (y)
+									  (check-cell board team x y))
+									(range 0 (- size x))))
+						  lens)
+				 (diagonal-symmetry-righttop board size)
+				  (mapcat (lambda (x)
+							(mapcat (lambda (y)
+									  (check-cell board team x y))
+									(range 0 (+ x 1))))
+						  lens)
+				  t (check-cells board team lens lens))))))))
+
+(define tic-tac-toe::end-p
+  (lambda (board)
+	(! let* ((size (assocdr board 'size))
+			 (lens (range 0 size))
+			 (vertical-lines
+			   (lambda () (map (lambda (x)
+								 (map (lambda (y)
+										(assocdr board (list x y))) lens))
+							   lens)))
+			 (horizontal-lines
+			   (lambda () (map (lambda (y)
+								 (map (lambda (x)
+										(assocdr board (list x y))) lens))
+							   lens)))
+			 (cross-lines
+			   (lambda () (list
+							(map (lambda (idx)
+								   (assocdr board (list idx idx)))
+								 lens)
+							(map (lambda (idx)
+								   (assocdr board
+											(list idx (- size idx 1))))
+								 lens)))))
+	   (car (find-if (lambda (line)
+					   (! let ((a (car line)))
+						  (and (not (equal " " a))
+							   (every (lambda (e) (equal a e))
+									  (cdr line)))))
+					 (append (vertical-lines)
+							 (horizontal-lines)
+							 (cross-lines)))))))
+

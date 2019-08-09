@@ -110,6 +110,7 @@ CHECK("(symbol '(104 101 108 108 111))", "hello")
 CHECK("(symbol \"abcd\")", "abcd")
 CHECK("(symbol [104 101 108 108 111])", "hello")
 CHECK("(symbol (pushqueu (pushqueu (pushqueu (queu) 97) 98) 99))", "abc")
+CHECK("(symbol nil)", "")
 CHECK("(sprint  \"a\" 1 (cons 1 2))", "\"a1(1 . 2)\"")
 CHECK("`(1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10)"
 		, "(1 2 3 4 5 6 7 8 9 10)")

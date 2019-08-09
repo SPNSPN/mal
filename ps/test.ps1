@@ -122,6 +122,7 @@ check "(symbol '(104 101 108 108 111))" (new-object symb "hello");
 check "(symbol `"abcd`")" (new-object symb "abcd");
 check "(symbol [104 101 108 108 111])" (new-object symb "hello");
 check "(symbol (pushqueu (pushqueu (pushqueu (queu) 97) 98) 99))" (new-object symb "abc");
+check "(symbol nil)" (new-object symb "");
 check "(sprint `"a`" 1 (cons 1 2))" "a1(1 . 2)";
 check "``(1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 ``(8 ,(* 3 3))) 10)" (list 1 2 3 4 5 6 7 8 9 10);
 check "'(1 2 3 . 4)" (cons 1 (cons 2 (cons 3 4)));
@@ -129,7 +130,7 @@ check "``',(car '(a . d))" (list (new-object symb "quote") (new-object symb "a")
 check "((lambda (head . rest) rest) 1 2 3 4)" (list 2 3 4);
 check "((lambda all all) 1 2 3 4)" (list 1 2 3 4);
 check "((lambda ((pa (pb pc) pd)) pc) (list 1 (list 2 3) 4))" 3;
-#check "(load `"mal/matrix.mal`") (matrix::determinant '((3 1 1 2 1) (5 1 3 4 1) (2 0 1 0 3) (1 3 2 1 1) (2 1 5 10 1)))" -292;
+check "(load `"mal/matrix.mal`") (matrix::determinant '((3 1 1 2 1) (5 1 3 4 1) (2 0 1 0 3) (1 3 2 1 1) (2 1 5 10 1)))" -292;
 echeck "(throw 1 `"an error occured!`")" 1 "an error occured!";
 echeck "(do 1 (throw 2 `"an error occured!`") 3)" 2 "an error occured!";
 echeck "(if (throw 3 `"an error occured!`") 3 4)" 3 "an error occured!";

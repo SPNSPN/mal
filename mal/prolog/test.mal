@@ -1,0 +1,25 @@
+(load "mal/interpreter.mal")
+(load "mal/prolog/prolog.mal")
+
+(define check
+  (lambda (expr succ)
+	`(do (prin "CHECK: " ',expr " -> ")
+	   (! let ((result (mal::eval ',expr (environment))))
+		  (do (print result)
+			(if (equal result ,succ) nil (throw 44 "Fail!")))))))
+
+(! check (prolog::unify 1 1) t)
+(! check (prolog::unify 1 2) nil)
+(! check (prolog::unify 'taro 'taro) t)
+(! check (prolog::unify 'Who 'taro) '((Who . taro)))
+(! check (prolog::unify 'What '(like taro tea)) '((What . (like taro tea))))
+(! check (prolog::unify '(like taro tea) '(like taro tea)) t)
+(! check (prolog::unify '(like taro coffee) '(like taro tea)) nil)
+(! check (prolog::unify '(like taro Drink) '(like taro tea)) '((Drink . tea)))
+(! check (prolog::unify '(like Who coffee) '(like taro Drink)) '((Who . taro) (Drink . coffee)))
+(! check (prolog::unify '(like Who coffee) '(like taro Who)) nil)
+(! check (prolog::unify '(like taro coffee) '_) t)
+(! check (prolog::unify '(like taro coffee) '(_ _ _)) t)
+(! check (prolog::unify '(_ taro _) '(like _ _)) t)
+(! check (prolog::unify '(Verb taro _) '(like _ Oh)) '((Verb . like)))
+

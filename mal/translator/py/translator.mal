@@ -1,0 +1,63 @@
+(load "mal/interpreter.mal")
+
+(define shift-indent
+  (lambda (codes)
+	(map (lambda (line) (sprint "\t" line)) codes)))
+
+(! let ((counter -1))
+   (define translator::python::gen-lambda-name
+	 (lambda () (do (setq counter (+ counter 1))
+				  	(sprint "_sys_lambda_" counter)))))
+
+(define translator::python::sys-var "_sys_var")
+
+(define translator::python::env ())
+(define regist
+  (lambda (sym fn)
+	`(! push translator::python::env (cons ,sym ,fn))))
+
+(! regist if (lambda (pred then else)
+			   (append (translator::python::encode pred)
+					   (list (sprint "if " translator::python::sys-var ":"))
+					   (shift-indent (translator::python::encode then))
+					   (list "else:")
+					   (shift-indent (translator::python::encode else)))))
+
+
+(! let ((regist (lambda (sym body)
+				  `(! push translator::python::env (cons ,sym (lambda (args) ,body))))))
+   (do (! regist if (sprint "if " (translator::python::encode (car args) 0) ":\n"
+							(translator::python::encode (car (cdr args)) 1) "\n"
+							"else:\n"
+							(translator::python::encode (car (cdr (cdr args))) 1)))
+	   (! regist lambda ())
+	   (! regist define ())
+	   (! regist setq ())
+	   (! regist quote ())
+	   (! regist do ())
+	   (! regist and ())
+	   (! regist or ())
+	   (! regist quasiquote ())
+	   (! regist environment ())
+	   (! regist ! ())
+	   (! regist catch ())
+	   ))
+
+
+(define translator::python::encode
+  (! let ((var-counter 0))
+	 (lambda (expr level)
+	   (! case (type expr)
+		  ('<nil> "False"
+		   '<inum> (sprint expr)
+		   '<fnum> (sprint expr)
+		   '<strn> expr
+		   '<symb> (sprint expr)
+		   '<cons> (! let ((proc (car expr)))
+					  (! aif (assocdr translator::python::env proc)
+						 (it (cdr expr))
+						 (sprint proc "("
+								 (join (map (lambda (arg)
+											  (translator::python::encode arg nlevel))
+											(cdr expr)) ", ") ")"))))))))
+

@@ -48,3 +48,19 @@
 		  (lambda (coll n)
 			(mapcat permu (math::combination coll n)))))
 
+(define math::floor
+  (lambda (n)
+	(! let ((fn (float (int n))))
+	   (if (< n 0)
+		 (if (equal fn (float n)) fn (- fn 1.0))
+		 fn))))
+
+(define math::ceil
+  (lambda (n)
+	(! let ((fn (math::floor n)))
+	   (if (equal fn (float n))
+		 fn
+		 (+ 1.0 fn)))))
+
+(define math::round (lambda (n) (math::floor (+ 0.5 n))))
+
