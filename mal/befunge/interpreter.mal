@@ -1,0 +1,8 @@
+(load "mal/befunge/befunge.mal")
+
+(! letrec ((rec (lambda (line reads)
+				  (if line
+					(rec (getline) (pushqueu reads line))
+					(befunge::eval (befunge::read (join (to-list reads) "\n")))))))
+  (rec (getline) (queu)))
+
