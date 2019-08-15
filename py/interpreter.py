@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import sys
 import importlib
+import argparse
 
 class NIL:
 	def __bool__ (self):
@@ -1087,12 +1088,24 @@ def initenv ():
 
 rplaca(genv, initenv())
 
-def repl (genv, read_dbg):
+
+def rep_file (script, read_dbg):
+	with open (script) as f:
+		try:
+			if read_dbg:
+				print(lprint(cons(Symb("do"), lread(f.read()))))
+			else:
+				print(lprint(leval(cons(Symb("do"), lread(f.read())), genv)))
+		except EOFError:
+			print("")
+		except Exception as e:
+			print(e)
+
+
+def repl (read_dbg):
+	prompt = "rdbg> " if read_dbg else "mal> "
 	while True:
-		if read_dbg:
-			sys.stdout.write("rdbg> ")
-		else:
-			sys.stdout.write("mal> ")
+		sys.stdout.write(prompt)
 		try:
 			if read_dbg:
 				print(lprint(cons(Symb("do"), lread(input()))))
@@ -1104,9 +1117,19 @@ def repl (genv, read_dbg):
 		except Exception as e:
 			print(e)
 
+def parse_cmd_args ():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("-r", "--readonly", action = "store_true", help = "the flag to debug befunge reader")
+	parser.add_argument("-s", "--script", help = "mal script file name")
+
+	return parser.parse_args()
+
+def main (args):
+	if args.script:
+		rep_file(args.script, args.readonly)
+	else:
+		repl(args.readonly)
+
 if __name__ == "__main__":
-	read_dbg = False
-	if len(sys.argv) > 1 and "-r" == sys.argv[1]:
-		read_dbg = True
-	repl(genv, read_dbg)
+	main(parse_cmd_args())
 

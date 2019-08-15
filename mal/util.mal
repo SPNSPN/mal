@@ -488,3 +488,12 @@
 	 (lambda (coll s)
 	   (if coll (join-rec (cdr coll) s (car coll)) ""))))
 
+(define make-list
+  (! letrec ((make-list-rec
+			   (lambda (n v res)
+				 (if (< n 1)
+				   res
+				   (make-list-rec (- n 1) v (cons v res))))))
+	 (lambda (len val)
+	   (make-list-rec len val nil))))
+

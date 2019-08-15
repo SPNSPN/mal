@@ -10,7 +10,7 @@
 (define befunge::? (car (to-list "?")))
 (define befunge::space (car (to-list " ")))
 (define befunge::# (car (to-list "#")))
-(define befunge::@ (car (to-list "@")))
+(define befunge::atmark (car (to-list "@")))
 (define befunge::0 (car (to-list "0")))
 (define befunge::1 (car (to-list "1")))
 (define befunge::2 (car (to-list "2")))
@@ -25,13 +25,13 @@
 (define befunge::& (car (to-list "&")))
 (define befunge::~ (car (to-list "~")))
 (define befunge::. (car (to-list ".")))
-(define befunge::, (car (to-list ",")))
+(define befunge::comma (car (to-list ",")))
 (define befunge::+ (car (to-list "+")))
 (define befunge::- (car (to-list "-")))
 (define befunge::* (car (to-list "*")))
 (define befunge::/ (car (to-list "/")))
 (define befunge::% (car (to-list "%")))
-(define befunge::` (car (to-list "`")))
+(define befunge::bquote (car (to-list "`")))
 (define befunge::! (car (to-list "!")))
 (define befunge::: (car (to-list ":")))
 (define befunge::\ (car (to-list "\\")))
@@ -49,9 +49,9 @@
 		  mode)))
 
 (define befunge::act-normal
-  (lambda (code stack cx cy dcons)
+  (lambda (code stack cx cy dcons c)
 	(! case c
-	   befunge::< (befunge::mov code stack cx cy (cons -1 0) 'normal)
+	   (befunge::< (befunge::mov code stack cx cy (cons -1 0) 'normal)
 	   befunge::> (befunge::mov code stack cx cy (cons 1 0) 'normal)
 	   befunge::^ (befunge::mov code stack cx cy (cons 0 -1) 'normal)
 	   befunge::v (befunge::mov code stack cx cy (cons 0 1) 'normal)
@@ -68,7 +68,7 @@
 					 (3 (befunge::mov code stack cx cy (cons 0 1) 'normal)))
 	   befunge::space (befunge::mov code stack cx cy dcons 'normal)
 	   befunge::# (apply befunge::mov (befunge::mov code stack cx cy dcons 'normal))
-	   befunge::@ (befunge::mov code stack cx cy (cons 0 0) 'normal)
+	   befunge::atmark (befunge::mov code stack cx cy (cons 0 0) 'halt)
 	   befunge::0 (befunge::mov code (cons 0 stack) cx cy dcons 'normal)
 	   befunge::1 (befunge::mov code (cons 1 stack) cx cy dcons 'normal)
 	   befunge::2 (befunge::mov code (cons 2 stack) cx cy dcons 'normal)
@@ -79,12 +79,12 @@
 	   befunge::7 (befunge::mov code (cons 7 stack) cx cy dcons 'normal)
 	   befunge::8 (befunge::mov code (cons 8 stack) cx cy dcons 'normal)
 	   befunge::9 (befunge::mov code (cons 9 stack) cx cy dcons 'normal)
-	   befunge::dquote (befunge::mov code (cons 9 stack) cx cy dcons 'str)
+	   befunge::dquote (befunge::mov code stack cx cy dcons 'str)
 	   befunge::& (befunge::mov code (cons (stoi (getline)) stack) cx cy dcons 'normal)
 	   befunge::~ (befunge::mov code (cons (getc) stack) cx cy dcons 'normal)
-	   befunge::. (do (print (sprint (! pop stack) " "))
+	   befunge::. (do (prin (sprint (! pop stack) " "))
 					(befunge::mov code stack cx cy dcons 'normal))
-	   befunge::, (do (print (string (list (! pop stack))))
+	   befunge::comma (do (prin (string (list (! pop stack))))
 					(befunge::mov code stack cx cy dcons 'normal))
 	   befunge::+ (! let ((y (! pop stack))
 						  (x (! pop stack)))
@@ -101,7 +101,7 @@
 	   befunge::% (! let ((y (! pop stack))
 						  (x (! pop stack)))
 					 (befunge::mov code (! push stack (% x y)) cx cy dcons 'normal))
-	   befunge::` (! let ((y (! pop stack))
+	   befunge::bquote (! let ((y (! pop stack))
 						  (x (! pop stack)))
 					 (befunge::mov code (! push stack (if (> x y) 1 0)) cx cy dcons 'normal))
 	   befunge::! (! let ((x (! pop stack)))
@@ -124,21 +124,25 @@
 						  (x (! pop stack))
 						  (v (! pop stack)))
 					 (befunge::mov (updatenth-in code (list y x) v) stack cx cy dcons 'normal))
-	   )))
+	   t (befunge::mov code stack cx cy dcons 'normal)))))
 
 (define befunge::act
   (lambda ((code stack cx cy dcons mode))
-	(! let ((c (nth (nth (code) cy) cx)))
+	(! let ((c (nth (nth code cy) cx)) )
 	   (! case mode
-		  'normal (befunge::act-normal code stack cx cy dcons)
-		  'str (if (= befunge:dquote c)
-				 (befunge::mov code (cons c stack) cx cy dcons 'str)
-				 (befunge::mov code stack cx cy dcons 'normal))
-		  'halt (list code stack cx cy dcons 'halt))))))
+		  ('normal (befunge::act-normal code stack cx cy dcons c)
+		   'str (if (= befunge::dquote c)
+				  (befunge::mov code stack cx cy dcons 'normal)
+				  (befunge::mov code (cons c stack) cx cy dcons 'str))
+		   'halt (list code stack cx cy dcons 'halt))))))
 
 (define befunge::read
   (lambda (str)
-	(split )))
+	(! let* ((rows (map to-list (split str "\n")))
+			 (ncol (max-in (map length rows))))
+	   (map (lambda (row)
+			  (append row (make-list (- ncol (length row)) befunge::space)))
+			rows))))
 
 (define befunge::eval
   (lambda (code)
@@ -149,5 +153,12 @@
 					 (eval-rec (befunge::act rec))))))
 	   (eval-rec (list code '() 0 0 (cons 1 0) 'normal)))))
 
-(define befunge::print)
+(define befunge::print
+  (! let ((print-code
+			(lambda (code)
+			  (join (map string code) "\n"))))
+	 (lambda ((code stack cx cy dcons))
+	   (sprint "pos: " (cons cx cy) " dir: " dcons "\n"
+			   "stk: " stack "\n"
+			   (print-code code)))))
 
