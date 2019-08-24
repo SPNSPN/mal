@@ -3,6 +3,7 @@
 (! letrec ((rec (lambda (line reads)
 				  (if line
 					(rec (getline) (pushqueu reads line))
-					(befunge::eval (befunge::read (join (to-list reads) "\n")))))))
+					(do (befunge::eval (befunge::read (join (to-list reads) "\n")))
+					  	nil)))))
   (rec (getline) (queu)))
 

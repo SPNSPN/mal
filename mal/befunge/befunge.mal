@@ -41,12 +41,14 @@
 
 (define befunge::mov
   (lambda (code stack cx cy dcons mode)
-	(list code
+	(! let ((lx (length (car code)))
+			(ly (length code)))
+	   (list code
 		  stack
-		  (% (+ cx (car dcons)) (length (car code)))
-		  (% (+ cy (cdr dcons)) (length code))
+		  (% (+ cx (car dcons) lx) lx)
+		  (% (+ cy (cdr dcons) ly) ly)
 		  dcons
-		  mode)))
+		  mode))))
 
 (define befunge::act-normal
   (lambda (code stack cx cy dcons c)
@@ -116,7 +118,7 @@
 					   (! push stack x)
 					   (befunge::mov code stack cx cy dcons 'normal)))
 	   befunge::$ (do (! pop stack)
-					(befunge::mov code stack cx cy dcons 'normal))
+					  (befunge::mov code stack cx cy dcons 'normal))
 	   befunge::g (! let ((y (! pop stack))
 						  (x (! pop stack)))
 					 (befunge::mov code (! push stack (nth (nth code y) x)) cx cy dcons 'normal))
@@ -128,7 +130,7 @@
 
 (define befunge::act
   (lambda ((code stack cx cy dcons mode))
-	(! let ((c (nth (nth code cy) cx)) )
+	(! let* ((c (nth (nth code cy) cx)))
 	   (! case mode
 		  ('normal (befunge::act-normal code stack cx cy dcons c)
 		   'str (if (= befunge::dquote c)
