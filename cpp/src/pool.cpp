@@ -677,6 +677,19 @@ Addr Pool::popqueu (Addr queu)
 	}
 }
 
+void Pool::concqueu (Addr qa, Addr qb)
+{
+	if (isnil(getentr(qa)))
+	{
+		setentr(qa, getentr(qb));
+		setexit(qa, getexit(qb));
+	}
+	else if (not isnil(getentr(qb)))
+	{
+		setcdr(getentr(qa), getexit(qb));
+	}
+}
+
 Addr Pool::popentrqueu (Addr queu)
 {
 	Addr exit = getexit(queu);

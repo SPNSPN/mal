@@ -383,6 +383,14 @@
 	  `(! aif ,(car form) ,(car (cdr form)) ,(acond (cdr (cdr form))))
 	  nil)))
 
+(define keep
+  (lambda (func coll)
+	(if coll
+	  (! aif (func (car coll))
+		(cons it (keep func (cdr coll)))
+		(keep func (cdr coll)))
+	  nil)))
+
 (! let ((minus (car (to-list "-")))
 		(ofst (car (to-list "0")))
 		(dot (car (to-list ".")))
@@ -500,10 +508,70 @@
 
 (define tail-drop (lambda (coll n) (take coll (- (length coll) n))))
 
+(define uniq
+  (! letrec ((uniq-rec (lambda (rest uniqs)
+						 (if rest
+						   (uniq-rec (cdr rest) (if (find (car rest) uniqs)
+												  uniqs
+												  (cons (car rest) uniqs)))
+						   uniqs))))
+	 (lambda (coll)
+	   (uniq-rec coll nil))))
+
+; memo merge sort
+(define sort
+  (! letrec ((divide
+			   (lambda (coll n divided)
+					(if (> n 0)
+					  (divide (cdr coll) (- n 1) (cons (car coll) divided))
+					  (cons divided coll))))
+			 (merge
+			   (lambda (a b cmp acc)
+				 (if a
+				   (if b
+					 (if (cmp (car a) (car b))
+					   (merge (cdr a) b cmp (pushqueu acc (car a)))
+					   (merge a (cdr b) cmp (pushqueu acc (car b))))
+					 (to-list (concqueu acc (to-queu a))))
+				   (to-list (concqueu acc (to-queu b))))))
+			 (sort-rec
+			   (lambda (coll cmp)
+				 (! let ((len (length coll)))
+					(! cond
+					   ((< len 2) coll
+						(= len 2) (merge (list (car coll)) (cdr coll) cmp (queu))
+						t (! let (((a . b) (divide coll (/ len 2) ())))
+							 (merge (sort-rec a cmp) (sort-rec b cmp) cmp (queu)))))))))
+	 (lambda (coll cmp)
+	   (sort-rec coll cmp))))
+
+(define flatten
+  (lambda (coll)
+	(! cond
+	   ((not coll) nil
+		(atom coll) (list coll)
+		t (append (flatten (car coll)) (flatten (cdr coll)))))))
+
+(define replacing
+  (lambda (form alist)
+	(! cond
+	   ((not form) nil
+		(atom form) (! aif (assocdr alist form) it form)
+		t (cons (replacing (car form) alist)
+				 (replacing (cdr form) alist))))))
+
 (define fn
-  (lambda (form)
-	(! let* ((keys (sort ()
-						 (lambda (a b) (< (atoi (string a))
-										  (atoi (string b))))))
-			 (syms ()))
-	   )))
+  (! let ((dollar (car (to-list "$"))))
+	 (lambda (form)
+	   (! let* ((keynums (sort (uniq (keep (lambda (v)
+										  (if (eq '<symb> (type v))
+											(! let ((vv (to-list v)))
+											   (if (= dollar (car vv))
+												 (stoi (string (cdr vv)))))))
+										(flatten form)))
+							<))
+				(keys (map (lambda (n) (symbol (sprint "$" n))) keynums))
+				(syms (map (lambda (argk) (symbol (sprint "_fn_arg_" argk))) keynums))
+				(_form (replacing form (zip keys syms))))
+		  `(lambda ,syms ,_form)))))
+

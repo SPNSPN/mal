@@ -102,9 +102,11 @@
 (check "[\"abc\" 42 (+ 1 1) () [1 2] 'non]" ["abc" 42 2 nil [1 2] 'non])
 (check "(queu)" (queu))
 (check "(queu 1 2 3)" (queu 1 2 3))
-(check "(pushqueu (pushqueu (pushqueu (queu) 5) 1) 0)"
-	   (pushqueu (pushqueu (pushqueu (queu) 5) 1) 0))
+(check "(pushqueu (pushqueu (pushqueu (queu) 5) 1) 0)" (queu 5 1 0))
 (check "(popqueu (pushqueu (pushqueu (pushqueu (queu) 5) 1) 0))" 5)
+(check "(concqueu (queu 2 5 8) (queu 3 6 9))" (queu 2 5 8 3 6 9))
+(check "(concqueu (queu 1 4 7) (queu))" (queu 1 4 7))
+(check "(concqueu (queu) (queu 42))" (queu 42))
 (check "(last (queu 1 2 3))" '(3))
 (check "(to-list \"hello\")" '(104 101 108 108 111))
 (check "(to-list 'hello)" '(104 101 108 108 111))

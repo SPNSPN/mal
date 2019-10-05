@@ -109,6 +109,20 @@ class queu
 		}
 		return $e;
 	}
+
+	[object] concat ($queu)
+	{
+		if (isnil $this.entr)
+		{
+			[void]($this.entr = $queu.entr);
+			[void]($this.exit = $queu.exit);
+		}
+		elseif (-not (isnil $queu.entr))
+		{
+			[void](rplacd $this.entr $queu.exit);
+		}
+		return $this;
+	}
 }
 
 class subr
@@ -1022,6 +1036,8 @@ regist_subr $genv { param($args_);
 	return $q; } "pushqueu";
 regist_subr $genv { param($args_);
 	return (car $args_).pop(); } "popqueu";
+regist_subr $genv { param($args_);
+	return (car $args_).concat((car (cdr $args_))); } "concqueu";
 regist_subr $genv { param($args_);`
 	$acc = 0;
 	for ($rest = $args_; -not (atom $rest); $rest = cdr $rest)

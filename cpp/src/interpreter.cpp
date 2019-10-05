@@ -58,6 +58,7 @@ Interpreter::Interpreter ()
 	subr.push_back(&Interpreter::subr_toqueu);
 	subr.push_back(&Interpreter::subr_pushqueu);
 	subr.push_back(&Interpreter::subr_popqueu);
+	subr.push_back(&Interpreter::subr_concqueu);
 	subr.push_back(&Interpreter::subr_empty);
 	subr.push_back(&Interpreter::subr_type);
 	subr.push_back(&Interpreter::subr_apply);
@@ -263,6 +264,11 @@ Interpreter::Interpreter ()
 				pool.make_cons(pool.make_symb("popqueu")
 					, pool.make_subr("popqueu"
 						, findidx<Subr>(subr, &Interpreter::subr_popqueu)))
+				, pool.getcar(genv)));
+	pool.setcar(genv, pool.make_cons(
+				pool.make_cons(pool.make_symb("concqueu")
+					, pool.make_subr("concqueu"
+						, findidx<Subr>(subr, &Interpreter::subr_concqueu)))
 				, pool.getcar(genv)));
 	pool.setcar(genv, pool.make_cons(
 				pool.make_cons(pool.make_symb("empty")
@@ -1020,6 +1026,14 @@ Addr Interpreter::subr_popqueu (Addr args)
 	// typecheck
 	Addr queu = pool.getcar(args);
 	return pool.popqueu(queu);
+}
+
+Addr Interpreter::subr_concqueu (Addr args)
+{
+	Addr qa = pool.getcar(args);
+	Addr qb = pool.getcar(pool.getcdr(args));
+	pool.concqueu(qa, qb);
+	return qa;
 }
 
 Addr Interpreter::subr_empty (Addr args)

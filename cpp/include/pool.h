@@ -132,6 +132,7 @@ class Pool
 		Addr lengthcons (Addr);
 		void pushqueu (Addr, Addr);
 		Addr popqueu (Addr);
+		void concqueu (Addr, Addr);
 		Addr popentrqueu (Addr);
 		Addr pack (Addr);
 		Addr unpack (Addr);

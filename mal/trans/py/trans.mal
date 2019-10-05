@@ -1,8 +1,8 @@
 (load "mal/interpreter.mal")
 
 (define trans::py::indent
-  (lambda (line n)
-	(join (append (times n "\t") (list line)) "")))
+  (lambda (line)
+	(sprint "\t" line)))
 
 (! let ((counter -1))
    (define trans::py::gen-lambda-name
@@ -34,10 +34,9 @@
 									(lambda-body (trans::py::encode (nth args 1))))
 				   (append (list (sprint "def " lambda-name " ("
 										 (join (car args) ", ") "):"))
-						   (map (lambda (l) (trans::py::indent l 1))
-								(tail-drop lambda-body 1))
+						   (map trans::py::indent (tail-drop lambda-body 1))
 						   (list (trans::py::indent
-								   (sprint "return " (back lambda-body)) 1)
+								   (sprint "return " (back lambda-body)))
 								 lambda-name))))
 
 (! trans::py::regist define ()) ; TODO
@@ -50,19 +49,37 @@
 (! trans::py::regist do (! let ((do-name (trans::py::gen-do-name))
 								(do-body (apply append (map trans::py::encode args))))
 						   (append (list (sprint "def " do-name " ():"))
-								   (map (lambda (l) (trans::py::indent l 1))
-									 (tail-drop do-body 1))
+								   (map trans::py::indent (tail-drop do-body 1))
 								   (list (trans::py::indent
-										   (sprint "return " (back do-body)) 1)
+										   (sprint "return " (back do-body)))
 										 (sprint do-name "()")))))
 (! trans::py::regist and (! let ((vals (map trans::py::encode args)))
-							(append (apply append (map (lambda) vals))
-									(list (join (map back vals) " and ")))))
-(! trans::py::regist or ())
-(! trans::py::regist quasiquote ())
-(! trans::py::regist environment ())
-(! trans::py::regist ! ())
-(! trans::py::regist catch ())
+							(append (apply append (map (! fn (tail-drop $0 1)) vals))
+									(list (sprint "(" (join (map back vals) " and ")
+												  ")")))))
+(! trans::py::regist or (! let ((vals (map trans::py::encode args)))
+							(append (apply append (map (! fn (tail-drop $0 1)) vals))
+									(list (sprint "(" (join (map back vals) " or ")
+												  ")")))))
+(! trans::py::regist quasiquote (trans::py::encode
+								  (mal::expand-quasiquote (car args) (environment))))
+(! trans::py::regist environment ()) ; TODO
+(! trans::py::regist ! (trans::py::encode
+						 (apply (mal::eval (car args) (environment)) (cdr args))))
+(! trans::py::regist catch (! let ((ebody (trans::py::encode (car args))))
+							  (append (list "try:")
+									  (map trans::py::indent
+										   (trans::py::encode (nth args 1)))
+									  (list "except Erro as _sys_erro:")
+									  (map trans::py::indent
+										   (append (tail-drop ebody 1)
+												   (list (sprint (back ebody)
+																 "(_sys_erro.id, _sys_erro.message)"))))
+									  (list "except Exception as _sys_erro:")
+									  (map trans::py::indent
+										   (append (tail-drop ebody 1)
+												   (list (sprint (back ebody)
+																 "(-1, _sys_erro.__str__())")))))))
 
 
 (define trans::py::encode
@@ -79,8 +96,7 @@
 					  (! let ((proc (trans::py::encode (car expr)))
 							  (args (map trans::py::encode (cdr expr))))
 						 (append (tail-drop proc 1)
-								 (apply append (map (lambda (arg)
-													  (tail-drop arg 1)) args))
+								 (apply append (map (! fn (tail-drop $0 1)) args))
 								 (list (sprint (back proc) "("
 											   (join (map back args) ", ") ")"))))))))))
 

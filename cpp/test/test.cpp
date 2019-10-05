@@ -1329,10 +1329,11 @@ int main (int argc, char **argv)
 	ITP_CHECK("[\"abc\" 42 (+ 1 1) () [1 2] 'non]" , "[\"abc\" 42 2 NIL [1 2] non]");
 	ITP_CHECK("(queu)", "/NIL/");
 	ITP_CHECK("(queu 1 2 3)", "/(1 2 3)/");
-	ITP_CHECK("(pushqueu (pushqueu (pushqueu (queu) 5) 1) 0)"
-			, "/(5 1 0)/");
-	ITP_CHECK("(popqueu (pushqueu (pushqueu (pushqueu (queu) 5) 1) 0))"
-			, "5");
+	ITP_CHECK("(pushqueu (pushqueu (pushqueu (queu) 5) 1) 0)", "/(5 1 0)/");
+	ITP_CHECK("(popqueu (pushqueu (pushqueu (pushqueu (queu) 5) 1) 0))", "5");
+	ITP_CHECK("(concqueu (queu 2 5 8) (queu 3 6 9))", "/(2 5 8 3 6 9)/");
+	ITP_CHECK("(concqueu (queu 1 4 7) (queu))", "/(1 4 7)/");
+	ITP_CHECK("(concqueu (queu) (queu 42))", "/(42)/");
 	ITP_CHECK("(last (queu 1 2 3))", "(3)");
 	ITP_CHECK("(to-list \"hello\")", "(104 101 108 108 111)");
 	ITP_CHECK("(to-list 'hello)", "(104 101 108 108 111)");

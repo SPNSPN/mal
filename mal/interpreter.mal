@@ -286,8 +286,8 @@
 		  (throw mal::error::type
 				 (sprint "cannot bind: " treea " and " treeb))
 		  (catch (lambda (id m) (if (equal id mal::error::type)
-								  (throw  mal::error::type
-										  (sprint "cannot bind: " treea " and " treeb))
+								  (throw mal::error::type
+										 (sprint "cannot bind: " treea " and " treeb))
 								  (throw id m)))
 				 (nconc (mal::bind-tree (car treea) (car treeb))
 						(mal::bind-tree (cdr treea) (cdr treeb)))))))))

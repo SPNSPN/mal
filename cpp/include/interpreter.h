@@ -80,6 +80,7 @@ class Interpreter
 		Addr subr_toqueu (Addr);
 		Addr subr_pushqueu (Addr);
 		Addr subr_popqueu (Addr);
+		Addr subr_concqueu (Addr);
 		Addr subr_empty (Addr);
 		Addr subr_type (Addr);
 		Addr subr_apply (Addr);

@@ -57,6 +57,13 @@ class Queu:
 		else:
 			self.exit = cdr(self.exit)
 		return e
+
+	def concat (self, queu):
+		if isnil(self.entr):
+			self = queu
+		elif not isnil(queu):
+			rplacd(self.entr, queu.exit)
+		return self
 	
 	def __eq__ (self, a):
 		return isinstance(a, Queu) and self.exit == a.exit
@@ -432,37 +439,42 @@ def lread (code):
 	return reverse(tree)
 
 def leval (expr, env):
-	while True:
-		if isinstance(expr, Cons):
-			args = cdr(expr)
-			proc = leval(car(expr), env)
-			if isinstance(proc, Func):
-				expr = proc.body
-				env = cons(bind_tree(proc.args, mapeval(args, env)),  proc.env)
-			elif isinstance(proc, Spfm):
-				if "if" == proc.name:
-					if leval(car(args), env) is nil:
-						expr = car(cdr(cdr(args)))
+	try:
+		while True:
+			if isinstance(expr, Cons):
+				args = cdr(expr)
+				proc = leval(car(expr), env)
+				if isinstance(proc, Func):
+					expr = proc.body
+					env = cons(bind_tree(proc.args, mapeval(args, env)),  proc.env)
+				elif isinstance(proc, Spfm):
+					if "if" == proc.name:
+						if leval(car(args), env) is nil:
+							expr = car(cdr(cdr(args)))
+						else:
+							expr = car(cdr(args))
+					elif "do" == proc.name:
+						rest = args
+						while isinstance(cdr(rest), Cons):
+							leval(car(rest), env)
+							rest = cdr(rest)
+						expr = car(rest)
+					elif "!" == proc.name:
+						expr = lapply(leval(car(args), env), cdr(args))
 					else:
-						expr = car(cdr(args))
-				elif "do" == proc.name:
-					rest = args
-					while isinstance(cdr(rest), Cons):
-						leval(car(rest), env)
-						rest = cdr(rest)
-					expr = car(rest)
-				elif "!" == proc.name:
-					expr = lapply(leval(car(args), env), cdr(args))
+						return proc(args, env)
+				elif callable(proc):
+					return lapply(proc, mapeval(args, env))
 				else:
-					return proc(args, env)
-			elif callable(proc):
-				return lapply(proc, mapeval(args, env))
+					raise Erro(ErroId.UnCallable, lprint(proc) + " is not callable.")
+			elif isinstance(expr, Symb):
+				return seekenv(env, expr)
 			else:
-				raise Erro(ErroId.UnCallable, lprint(proc) + " is not callable.")
-		elif isinstance(expr, Symb):
-			return seekenv(env, expr)
-		else:
-			return expr
+				return expr
+	except Exception as err:
+		# for debug
+		print("E: at {0}".format(lprint(expr)))
+		raise err
 
 def lapply (proc, args):
 	if isinstance(proc, Func):
@@ -1044,6 +1056,7 @@ def initenv ():
 	ienv = cons(cons(Symb("queu"), queu), ienv)
 	ienv = cons(cons(Symb("pushqueu"), (lambda queu, val: queu.push(val))), ienv)
 	ienv = cons(cons(Symb("popqueu"), (lambda queu: queu.pop())), ienv)
+	ienv = cons(cons(Symb("concqueu"), (lambda qa, qb: qa.concat(qb))), ienv)
 	ienv = cons(cons(Symb("to-list"), to_list), ienv)
 	ienv = cons(cons(Symb("to-vect"), to_vect), ienv)
 	ienv = cons(cons(Symb("to-queu"), to_queu), ienv)
