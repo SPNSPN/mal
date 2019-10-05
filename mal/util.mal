@@ -61,14 +61,14 @@
  nil)
 
 (define map
-  (lambda (fn coll)
+  (lambda (func coll)
 	(if coll
-	  (cons (fn (car coll)) (map fn (cdr coll)))
+	  (cons (func (car coll)) (map func (cdr coll)))
 	  nil)))
 
 (define reduce
-  (lambda (fn coll val)
-	(if coll (reduce fn (cdr coll) (fn val (car coll))) val)))
+  (lambda (func coll val)
+	(if coll (reduce func (cdr coll) (func val (car coll))) val)))
 
 ((lambda (append1-rec)
    (do (setq append1-rec
@@ -87,13 +87,13 @@
 	(reduce (lambda (acc e) (append1 e acc)) (reverse colls) nil)))
 
 (define mapcat
-  (lambda (fn coll)
+  (lambda (func coll)
 	(if coll
-	  (append1 (fn (car coll)) (mapcat fn (cdr coll)))
+	  (append1 (func (car coll)) (mapcat func (cdr coll)))
 	  nil)))
 
 ;(define map ; TODO 複数リストを受け取るmap
-;  (lambda (fn . colls)
+;  (lambda (func . colls)
 ;	()))
 
 (define let
@@ -307,9 +307,10 @@
 				 (range-rec b (+ e st) st
 							(cons e acc))))))
 		  (lambda (begin end)
-			(if (< begin end)
-			  (range-rec begin (- end 1) -1 nil)
-			  (range-rec begin (+ end 1) 1 nil)))))
+			(! cond
+			  ((< begin end) (range-rec begin (- end 1) -1 nil)
+			   (> begin end) (range-rec begin (+ end 1) 1 nil)
+			   t nil)))))
 
 (define max-in
   (! letrec ((max-in-rec
@@ -465,10 +466,6 @@
   (lambda (var)
 	`(do (setq var (- var 1)) var)))
 
-(define times
-  (lambda (n val)
-	(map (lambda (i) val) (range 0 n))))
-
 (define split
   (! letrec ((split-rec
 			   (lambda (rest sl sllen res-head res-tail)
@@ -497,3 +494,16 @@
 	 (lambda (len val)
 	   (make-list-rec len val nil))))
 
+(define back (lambda (coll) (car (last coll))))
+
+(define tail-take (lambda (coll n) (drop coll (- (length coll) n))))
+
+(define tail-drop (lambda (coll n) (take coll (- (length coll) n))))
+
+(define fn
+  (lambda (form)
+	(! let* ((keys (sort ()
+						 (lambda (a b) (< (atoi (string a))
+										  (atoi (string b))))))
+			 (syms ()))
+	   )))

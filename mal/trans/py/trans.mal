@@ -1,63 +1,86 @@
 (load "mal/interpreter.mal")
 
-(define shift-indent
-  (lambda (codes)
-	(map (lambda (line) (sprint "\t" line)) codes)))
+(define trans::py::indent
+  (lambda (line n)
+	(join (append (times n "\t") (list line)) "")))
 
 (! let ((counter -1))
    (define trans::py::gen-lambda-name
 	 (lambda () (do (setq counter (+ counter 1))
 				  	(sprint "_sys_lambda_" counter)))))
 
+(! let ((counter -1))
+   (define trans::py::gen-do-name
+	 (lambda () (do (setq counter (+ counter 1))
+				  	(sprint "_sys_do_" counter)))))
+
 (define trans::py::sys-var "_sys_var")
 
 (define trans::py::env ())
-(define regist
-  (lambda (sym fn)
-	`(! push trans::py::env (cons ,sym ,fn))))
 
-(! regist if (lambda (pred then else)
-			   (append (trans::py::encode pred)
-					   (list (sprint "if " trans::py::sys-var ":"))
-					   (shift-indent (trans::py::encode then))
-					   (list "else:")
-					   (shift-indent (trans::py::encode else)))))
+(define trans::py::regist
+  (lambda (sym body) `(! push trans::py::env (cons ',sym (lambda (args) ,body)))))
 
+(! trans::py::regist if (! let ((pred (trans::py::encode (car args)))
+								(then (trans::py::encode (nth args 1)))
+								(else (trans::py::encode (nth args 2))))
+						   (append (tail-drop pred 1)
+								   (tail-drop then 1)
+								   (tail-drop else 1)
+								   (list (sprint "(" (back then) " if " (back pred)
+												 " else " (back else) ")")))))
 
-(! let ((regist (lambda (sym body)
-				  `(! push trans::py::env (cons ,sym (lambda (args) ,body))))))
-   (do (! regist if (sprint "if " (trans::py::encode (car args) 0) ":\n"
-							(trans::py::encode (car (cdr args)) 1) "\n"
-							"else:\n"
-							(trans::py::encode (car (cdr (cdr args))) 1)))
-	   (! regist lambda ())
-	   (! regist define ())
-	   (! regist setq ())
-	   (! regist quote ())
-	   (! regist do ())
-	   (! regist and ())
-	   (! regist or ())
-	   (! regist quasiquote ())
-	   (! regist environment ())
-	   (! regist ! ())
-	   (! regist catch ())
-	   ))
+(! trans::py::regist lambda (! let ((lambda-name (trans::py::gen-lambda-name))
+									(lambda-body (trans::py::encode (nth args 1))))
+				   (append (list (sprint "def " lambda-name " ("
+										 (join (car args) ", ") "):"))
+						   (map (lambda (l) (trans::py::indent l 1))
+								(tail-drop lambda-body 1))
+						   (list (trans::py::indent
+								   (sprint "return " (back lambda-body)) 1)
+								 lambda-name))))
+
+(! trans::py::regist define ()) ; TODO
+(! trans::py::regist setq (! let ((sym (trans::py::encode (car args)))
+								  (val (trans::py::encode (nth args 1))))
+							 (append (tail-drop sym 1)
+									 (tail-drop val 1)
+									 (list (sprint (back sym) " = " (back val))))))
+(! trans::py::regist quote ()) ; TODO
+(! trans::py::regist do (! let ((do-name (trans::py::gen-do-name))
+								(do-body (apply append (map trans::py::encode args))))
+						   (append (list (sprint "def " do-name " ():"))
+								   (map (lambda (l) (trans::py::indent l 1))
+									 (tail-drop do-body 1))
+								   (list (trans::py::indent
+										   (sprint "return " (back do-body)) 1)
+										 (sprint do-name "()")))))
+(! trans::py::regist and (! let ((vals (map trans::py::encode args)))
+							(append (apply append (map (lambda) vals))
+									(list (join (map back vals) " and ")))))
+(! trans::py::regist or ())
+(! trans::py::regist quasiquote ())
+(! trans::py::regist environment ())
+(! trans::py::regist ! ())
+(! trans::py::regist catch ())
 
 
 (define trans::py::encode
   (! let ((var-counter 0))
-	 (lambda (expr level)
+	 (lambda (expr)
 	   (! case (type expr)
-		  ('<nil> "False"
-		   '<inum> (sprint expr)
-		   '<fnum> (sprint expr)
-		   '<strn> expr
-		   '<symb> (sprint expr)
-		   '<cons> (! let ((proc (car expr)))
-					  (! aif (assocdr trans::py::env proc)
-						 (it (cdr expr))
-						 (sprint proc "("
-								 (join (map (lambda (arg)
-											  (trans::py::encode arg nlevel))
-											(cdr expr)) ", ") ")"))))))))
+		  ('<nil> (list "False")
+		   '<inum> (list (sprint expr))
+		   '<fnum> (list (sprint expr))
+		   '<strn> (list (sprint "\"" expr "\""))
+		   '<symb> (list (sprint expr))
+		   '<cons> (! aif (assocdr trans::py::env (car expr))
+					  (it (cdr expr))
+					  (! let ((proc (trans::py::encode (car expr)))
+							  (args (map trans::py::encode (cdr expr))))
+						 (append (tail-drop proc 1)
+								 (apply append (map (lambda (arg)
+													  (tail-drop arg 1)) args))
+								 (list (sprint (back proc) "("
+											   (join (map back args) ", ") ")"))))))))))
 
