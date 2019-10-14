@@ -318,7 +318,7 @@ def lsetq (env, args):
 		asc = assoc(car(rest), sym)
 		if not asc is None:
 			rplacd(asc, leval(car(cdr(args)), env))
-			return sym
+			return cdr(asc)
 		rest = cdr(rest)
 	raise Erro(ErroId.Symbol, lprint(sym) + " is not defined.")
 

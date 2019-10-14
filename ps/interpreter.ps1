@@ -923,7 +923,7 @@ function setq ($env, $sym, $val)
 		[void](rplacd $record (leval $val $env));
 	}
 
-	return $sym;
+	return (cdr $record);
 }
 
 function do ($env, $exprs)

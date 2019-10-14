@@ -263,7 +263,7 @@
 	  (cons (mal::eval (car coll) env) (mal::mapeval (cdr coll) env))
 	  nil)))
 
-(define mal::expand-quasiquote
+(define mal::expand-quasiquote-proc
   (lambda (expr env)
 	(! letrec ((expand-rec (lambda (rest)
 							 (if rest
@@ -271,11 +271,26 @@
 										(eq 'splicing (car (car rest))))
 								 (append (mal::eval (car (cdr (car rest))) env)
 										 (expand-rec (cdr rest)))
-								 (cons (mal::expand-quasiquote (car rest) env)
+								 (cons (mal::expand-quasiquote-proc (car rest) env)
 									   (expand-rec (cdr rest))))))))
 	   (! cond ((atom expr) expr
 		   		(eq 'unquote (car expr)) (mal::eval (car (cdr expr)) env)
 		   		t (expand-rec expr))))))
+
+(define mal::expand-quasiquote-1
+  (lambda (expr env)
+	(if (atom expr)
+	  expr
+	  (if (eq (car expr) 'quasiquote)
+		(mal::expand-quasiquote-proc (car (cdr expr)) env)
+		(map (lambda (e) (mal::expand-quasiquote-1 e env)) expr)))))
+
+(define mal::expand-quasiquote
+  (lambda (expr env)
+	(! let ((eexpr (mal::expand-quasiquote-1 expr env)))
+	   (if (equal expr eexpr)
+		 expr
+		 (mal::expand-quasiquote eexpr env)))))
 
 (define mal::bind-tree
   (lambda (treea treeb)
@@ -326,7 +341,8 @@
 								 (mal::eval (car (cdr args))
 											(cons (mal::bind-tree (car args) largs)
 												  env)))
-			 (eq '! proc) (mal::eval (apply (mal::eval (car args) env) (cdr args))
+			 (eq '! proc) (mal::eval
+							(mal::expand-syntax-proc (car args) (cdr args) env)
 									 env)
 			 (eq 'define proc) (! let ((genv (last (environment))))
 								  (do (! aif (mal::seekenv genv (car args))
@@ -338,8 +354,7 @@
 													   (car genv))))
 									  (car args)))
 			 (eq 'setq proc) (! aif (mal::seekenv env (car args))
-								(do (rplacd it (mal::eval (car (cdr args)) env))
-								    (car args))
+								(cdr (rplacd it (mal::eval (car (cdr args)) env)))
 								(throw mal::error::symbol
 									   (sprint (car args) " is not defined.")))
 			 (eq 'do proc) (! letrec ((recur (lambda (rest)
@@ -364,17 +379,31 @@
 														  (mal::eval (car rest) env))
 												   ret)))))
 							  (recur args nil))
-			 (eq 'quasiquote proc) (mal::expand-quasiquote (car args) env)
+			 (eq 'quasiquote proc) (mal::expand-quasiquote-proc (car args) env)
 			 (eq 'catch proc) (catch (lambda err
 									   (apply (mal::eval (car args) env) err))
 									 (mal::eval (car (cdr args)) env))
 			 (eq 'environment proc) env
 			 t (apply (mal::eval proc env) (mal::mapeval args env))))))))
 
-; TODO
+(define mal::expand-syntax-proc
+  (lambda (proc args env)
+	(apply (mal::eval proc env) args)))
+
+(define mal::expand-syntax-1
+  (lambda (expr env)
+	(if (atom expr)
+	  expr
+	  (if (eq (car expr) '!)
+		(mal::expand-syntax-proc (car (cdr expr)) (cdr (cdr expr)) env)
+		(map (lambda (e) (mal::expand-syntax-1 e env)) expr)))))
+
 (define mal::expand-syntax
-  (lambda (expr)
-	))
+  (lambda (expr env)
+	(! let ((eexpr (mal::expand-syntax-1 expr env)))
+	   (if (equal expr eexpr)
+		 expr
+		 (mal::expand-syntax eexpr env)))))
 
 (define mal::repl
   (lambda ()

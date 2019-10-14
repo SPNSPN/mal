@@ -1317,7 +1317,9 @@ int main (int argc, char **argv)
 	ITP_CHECK("((lambda (n) (+ n 1)) 3)", "4");
 	ITP_CHECK("(! (lambda (a op b) (list op a b)) 1 + 2)", "3");
 	ITP_CHECK("(define foo 42) foo", "42");
+	ITP_CHECK("(define foo 42)", "foo");
 	ITP_CHECK("(define bar 32) (setq bar 333) bar", "333");
+	ITP_CHECK("(define bar 32) (setq bar 333)", "333");
 	ITP_CHECK("(((lambda (fib) (do (setq fib (lambda (n) (if (> 2 n) 1 (+ (fib (- n 1)) (fib (- n 2)))))) fib)) nil) 10)"
 			, "89");
 	ITP_CHECK("(((lambda (fib) (do (setq fib (lambda (n p1 p2) (if (> 2 n) p1 (fib (- n 1) (+ p1 p2) p1)))) fib)) nil) 45 1 1)"

@@ -1229,7 +1229,7 @@ Addr Interpreter::spfm_setq (Addr args, Addr env)
 	}
 
 	pool.setcdr(it, val);
-	return sym;
+	return val;
 }
 
 Addr Interpreter::spfm_do (Addr args, Addr env)
