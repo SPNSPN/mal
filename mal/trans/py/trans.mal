@@ -16,10 +16,10 @@
 
 (define trans::py::sys-var "_sys_var")
 
-(define trans::py::env ())
+(define trans::py::env nil)
 
 (define trans::py::regist
-  (lambda (sym body) `(! push trans::py::env (cons ',sym (lambda (args) ,body)))))
+  (lambda (sym body) `(! push trans::py::env (cons ',sym (lambda (args env) ,body)))))
 
 ; TODO 末尾呼出最適化
 (! trans::py::regist if (! let ((pred (trans::py::encode (car args)))
@@ -44,14 +44,14 @@
 									(val (trans::py::encode (nth args 1))))
 							   (append (tail-drop val 1)
 									   (list (sprint "global " sym)
-											 (sprint sym " = " (back val))
-											 (string sym))))) ; TODO 値でなく、クォートしたシンボルを返すようにする
+											 (sprint sym " = " (back val)))
+									   (trans::py::encode `(quote ,sym))))) ; TODO 値でなく、クォートしたシンボルを返すようにする
 (! trans::py::regist setq (! let ((sym (car args))
 								  (val (trans::py::encode (nth args 1))))
 							 (append (tail-drop val 1)
 									 (list (sprint sym " = " (back val))
 										   (string sym)))))
-(! trans::py::regist quote ()) ; TODO
+(! trans::py::regist quote (list (sprint "quote(" (car args) ")"))) ; TODO
 (! trans::py::regist do (! let ((do-name (trans::py::gen-do-name))
 								(do-body (apply append (map trans::py::encode args))))
 						   (append (list (sprint "def " do-name " ():"))
@@ -68,12 +68,11 @@
 									(list (sprint "(" (join (map back vals) " or ")
 												  ")")))))
 (! trans::py::regist quasiquote (trans::py::encode
-								  (mal::expand-quasiquote-proc (car args)
-															   (environment))))
+								  (mal::expand-quasiquote-proc (car args) env)))
 (! trans::py::regist environment ()) ; TODO
 (! trans::py::regist ! (trans::py::encode
 						 (mal::expand-syntax-proc
-						   (car args) (cdr args) (environment))))
+						   (car args) (cdr args) env)))
 (! trans::py::regist catch (! let ((ebody (trans::py::encode (car args))))
 							  (append (list "try:")
 									  (map trans::py::indent
@@ -89,6 +88,9 @@
 												   (list (sprint (back ebody)
 																 "(-1, _sys_erro.__str__())")))))))
 
+(! trans::py::regist trans::py::block
+   (apply append (map trans::py::encode args)))
+
 (define trans::py::replace-define
   (! letrec ((pick-define
 			   (lambda (rexpr)
@@ -98,7 +100,7 @@
 					 (list rexpr)
 					 (apply append (map pick-define rexpr)))))))
 	 (lambda (expr)
-	   (append '(do)
+	   (append '(trans::py::block)
 			   (map (! fn `(setq ,(nth $0 1) nil)) (pick-define expr))
 			   (list expr)))))
 
@@ -112,7 +114,7 @@
 		   '<strn> (list (sprint "\"" expr "\""))
 		   '<symb> (list (sprint expr))
 		   '<cons> (! aif (assocdr trans::py::env (car expr))
-					  (it (cdr expr))
+					  (it (cdr expr) (environment))
 					  ; TODO 末尾呼出最適化
 					  (! let ((proc (trans::py::encode (car expr)))
 							  (args (map trans::py::encode (cdr expr))))

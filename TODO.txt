@@ -1,0 +1,13 @@
+file handleを取得するsubr open
+ipythonみたいな対話環境
+py transの末尾呼出最適化
+定数畳み込み最適化
+多相型推論
+s式prolog
+s式factor
+trans kotrin
+trans c++
+s式xml 動的HP
+s式mml
+自然言語生成 伺か
+malの名称つける
