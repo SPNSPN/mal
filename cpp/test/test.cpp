@@ -1297,9 +1297,9 @@ int main (int argc, char **argv)
 	ITP_CHECK("(% 9 2)", "1");
 	ITP_CHECK("(+ 1 2 (- 10 3 4) 4 (/ 30 2 4) (* 2 2 2))", "21");
 	ITP_CHECK("(< 1 2 4)", "T");
-	ITP_CHECK("(< 3 2 4)", "NIL");
+	ITP_CHECK("(< 1 2 1)", "NIL");
 	ITP_CHECK("(> 3 2 1)", "T");
-	ITP_CHECK("(> 3 5 1)", "NIL");
+	ITP_CHECK("(> 3 2 3)", "NIL");
 	ITP_CHECK("(int 2.0)", "2");
 	ITP_CHECK("(int -555.3)", "-555");
 	ITP_CHECK("(int 123)", "123");

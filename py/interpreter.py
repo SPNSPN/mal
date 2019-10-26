@@ -1,7 +1,11 @@
 #! /usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import sys
 import importlib
 import argparse
+
+_sys_var = None
 
 class NIL:
 	def __bool__ (self):

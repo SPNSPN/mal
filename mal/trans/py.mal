@@ -4,6 +4,8 @@
   (lambda (line)
 	(sprint "\t" line)))
 
+(define trans::py::sys-var "_sys_var")
+
 (! let ((counter -1))
    (define trans::py::gen-lambda-name
 	 (lambda () (do (setq counter (+ counter 1))
@@ -14,12 +16,24 @@
 	 (lambda () (do (setq counter (+ counter 1))
 				  	(sprint "_sys_do_" counter)))))
 
-(define trans::py::sys-var "_sys_var")
-
 (define trans::py::env nil)
 
 (define trans::py::regist
   (lambda (sym body) `(! push trans::py::env (cons ',sym (lambda (args env) ,body)))))
+
+(define trans::py::regist-mid
+  (lambda (sym op zeros)
+	`(! push  trans::py::env
+		(cons ',sym
+			  (lambda (args env)
+				(! let ((vals (map trans::py::encode
+								   (! cond 
+									  ((= 0 (length args)) (list ,zeros)
+									   (= 1 (length args)) (cons ,zeros args)
+									   t args)))))
+				   (append (apply append (map (! fn (tail-drop $0 1)) vals))
+						   (list (sprint "(" (join (map back vals) ,op)
+										 ")")))))))))
 
 ; TODO 末尾呼出最適化
 (! trans::py::regist if (! let ((pred (trans::py::encode (car args)))
@@ -45,31 +59,27 @@
 							   (append (tail-drop val 1)
 									   (list (sprint "global " sym)
 											 (sprint sym " = " (back val)))
-									   (trans::py::encode `(quote ,sym))))) ; TODO 値でなく、クォートしたシンボルを返すようにする
+									   (trans::py::encode `(quote ,sym)))))
 (! trans::py::regist setq (! let ((sym (car args))
 								  (val (trans::py::encode (nth args 1))))
 							 (append (tail-drop val 1)
 									 (list (sprint sym " = " (back val))
 										   (string sym)))))
-(! trans::py::regist quote (list (sprint "quote(" (car args) ")"))) ; TODO
+(! trans::py::regist quote (list (sprint "car(lread(\"" (car args) "\"))")))
 (! trans::py::regist do (! let ((do-name (trans::py::gen-do-name))
 								(do-body (apply append (map trans::py::encode args))))
 						   (append (list (sprint "def " do-name " ():"))
 								   (map trans::py::indent (tail-drop do-body 1))
 								   (list (trans::py::indent
-										   (sprint "return " (back do-body)))
+										   (sprint "return "
+												   (back (if do-body do-body
+													 (trans::py::encode nil)))))
 										 (sprint do-name "()")))))
-(! trans::py::regist and (! let ((vals (map trans::py::encode args)))
-							(append (apply append (map (! fn (tail-drop $0 1)) vals))
-									(list (sprint "(" (join (map back vals) " and ")
-												  ")")))))
-(! trans::py::regist or (! let ((vals (map trans::py::encode args)))
-							(append (apply append (map (! fn (tail-drop $0 1)) vals))
-									(list (sprint "(" (join (map back vals) " or ")
-												  ")")))))
+(! trans::py::regist-mid and " and " t)
+(! trans::py::regist-mid or " or " nil)
 (! trans::py::regist quasiquote (trans::py::encode
 								  (mal::expand-quasiquote-proc (car args) env)))
-(! trans::py::regist environment ()) ; TODO
+(! trans::py::regist environment (list "genv"))
 (! trans::py::regist ! (trans::py::encode
 						 (mal::expand-syntax-proc
 						   (car args) (cdr args) env)))
@@ -91,6 +101,16 @@
 (! trans::py::regist trans::py::block
    (apply append (map trans::py::encode args)))
 
+(! trans::py::regist list
+   (! let ((vals (map trans::py::encode args)))
+	  (append (apply append (map (! fn (tail-drop $0 1)) vals))
+			  (list (sprint "l(" (join (map back vals) ", ") ")")))))
+
+(! trans::py::regist-mid + " + " 0)
+(! trans::py::regist-mid - " - " 0)
+(! trans::py::regist-mid * " * " 1)
+(! trans::py::regist-mid / " / " 1)
+
 (define trans::py::replace-define
   (! letrec ((pick-define
 			   (lambda (rexpr)
@@ -108,7 +128,7 @@
   (! let ((var-counter 0))
 	 (lambda (expr)
 	   (! case (type expr)
-		  ('<nil> (list "None")
+		  ('<nil> (list "nil")
 		   '<inum> (list (sprint expr))
 		   '<fnum> (list (sprint expr))
 		   '<strn> (list (sprint "\"" expr "\""))
@@ -122,4 +142,11 @@
 								 (apply append (map (! fn (tail-drop $0 1)) args))
 								 (list (sprint (back proc) "("
 											   (join (map back args) ", ") ")"))))))))))
+
+(define trans::py::encodetop
+  (lambda (expr)
+	(! let ((lines (trans::py::encode expr)))
+	   (append (tail-drop lines 1)
+			   (list (sprint "global " trans::py::sys-var)
+					 (sprint trans::py::sys-var " = " (back lines)))))))
 

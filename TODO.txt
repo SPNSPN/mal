@@ -3,8 +3,10 @@ ipythonみたいな対話環境
 py transの末尾呼出最適化
 定数畳み込み最適化
 多相型推論
+throwの仕様変更eidを数値からシンボルにする
 s式prolog
 s式factor
+trans javascript
 trans kotrin
 trans c++
 s式xml 動的HP
