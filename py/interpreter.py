@@ -534,18 +534,35 @@ def lgetc ():
 def lgetat (vect, idx):
 	if isinstance(vect, list) or isinstance(vect, str):
 		return vect[idx]
+	
 	if isinstance(vect, Symb):
-		return vect.name[idx]
+		return Symb(vect.name[idx])
+
 	raise Erro(ErroId.Type, "cannot apply getat to {0}".format(lprint(vect)))
 
 def lsetat (vect, idx, val):
-	if isinstance(vect, list) or isinstance(vect, str):
+	if isinstance(vect, list):
 		vect[idx] = val
-	elif isinstance(vect, Symb):
-		vect.name[idx] = val
-	else:
-		raise Erro(ErroId.Type, "cannot apply setat to {0}".format(lprint(vect)))
-	return vect
+		return vect
+	if isinstance(vect, str):
+		if isinstance(val, int):
+			return vect[:idx] + chr(val) + vect[idx + 1:]
+		if isinstance(val, str):
+			return vect[:idx] + val[0] + vect[idx + 1:]
+		if isinstance(val, Symb):
+			return vect[:idx] + val.name[0] + vect[idx + 1:]
+		raise Erro(ErroId.Type, "cannot setat {0} to {1}".format(lprint(val), lprint(vect)))
+	if isinstance(vect, Symb):
+		if isinstance(val, int):
+			vect.name = vect.name[:idx] + chr(val) + vect.name[idx + 1:]
+		elif isinstance(val, str):
+			vect.name = vect.name[:idx] + val[0] + vect.name[idx + 1:]
+		elif isinstance(val, Symb):
+			vect.name = vect.name[:idx] + val.name[0] + vect.name[idx + 1:]
+		else:
+			raise Erro(ErroId.Type, "cannot setat {0} to {1}".format(lprint(val), lprint(vect)))
+		return vect
+	raise Erro(ErroId.Type, "cannot apply setat to {0}".format(lprint(vect)))
 
 def lprint (expr):
 	dup = seek_dup(expr, nil, nil)

@@ -903,10 +903,22 @@ Addr Interpreter::subr_getat (Addr args)
 {
 	// TODO areacheck
 	Byte typ = pool.type(pool.getcar(args));
-	if (Pool::VectT == typ or Pool::StrnT == typ or Pool::SymbT == typ)
+	if (Pool::VectT == typ)
 	{
 		return pool.getatvect(pool.getcar(args)
 				, pool.getnum(pool.getcar(pool.getcdr(args))));
+	}
+	if (Pool::StrnT == typ)
+	{
+		char c = pool.getnum(pool.getatvect(pool.getcar(args)
+				, pool.getnum(pool.getcar(pool.getcdr(args)))));
+		return pool.make_strn(std::string(1, c));
+	}
+	if (Pool::SymbT == typ)
+	{
+		char c = pool.getnum(pool.getatvect(pool.getcar(args)
+				, pool.getnum(pool.getcar(pool.getcdr(args)))));
+		return pool.make_symb(std::string(1, c));
 	}
 	return pool.make_erro(Type
 			, pool.make_strn(std::string("cannot apply getat to ")
@@ -918,11 +930,31 @@ Addr Interpreter::subr_setat (Addr args)
 	// TODO typecheck
 	// TODO areacheck
 	Addr vect = pool.getcar(args);
+	Fixnum idx = pool.getnum(pool.getcar(pool.getcdr(args)));
+	Addr val = pool.getcar(pool.getcdr(pool.getcdr(args)));
 	Byte typ = pool.type(vect);
-	if (Pool::VectT == typ or Pool::StrnT == typ or Pool::SymbT == typ)
+	Byte vtyp = pool.type(val);
+	if (Pool::VectT == typ)
 	{
-		pool.setatvect(vect, pool.getnum(pool.getcar(pool.getcdr(args)))
-				, pool.getcar(pool.getcdr(pool.getcdr(args))));
+		pool.setatvect(vect, idx, val);
+		return vect;
+	}
+	if (Pool::StrnT == typ or Pool::SymbT == typ)
+	{
+		if (Pool::InumT == vtyp)
+		{
+			pool.setatvect(vect, idx, val);
+		}
+		else if (Pool::StrnT == vtyp or Pool::SymbT == vtyp)
+		{
+			pool.setatvect(vect, idx, pool.getatvect(val, 0));
+		}
+		else
+		{
+			return pool.make_erro(Type
+					, pool.make_strn(std::string("cannot setat " + print(val)
+							+ " to " + print(vect))));
+		}
 		return vect;
 	}
 	return pool.make_erro(Type

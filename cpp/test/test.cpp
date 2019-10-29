@@ -1436,9 +1436,19 @@ int main (int argc, char **argv)
 	ITP_CHECK("(define v [1 2 3]) (setat v 2 44) v", "[1 2 44]");
 	ITP_CHECK("(eq (getat [1 nil 3] 1) nil)", "T");
 	ITP_CHECK("(if (getat [1 nil 3] 1) 1 2)", "2");
-	ITP_CHECK("(getat \"abcd\" 2)", "c");
+	ITP_CHECK("(getat \"abcd\" 2)", "\"c\"");
+	ITP_CHECK("(setat [1 2 3] 1 \"a\")", "[1 \"a\" 3]");
+	ITP_CHECK("(setat [1 2 3] 1 'a)", "[1 a 3]");
+	ITP_CHECK("(setat [1 2 3] 1 '(1 . 2))", "[1 (1 . 2) 3]");
+	ITP_CHECK("(setat \"ABC\" 2 99)", "\"ABc\"");
+	ITP_CHECK("(setat \"ABC\" 2 \"d\")", "\"ABd\"");
+	ITP_CHECK("(setat \"ABC\" 2 'e)", "\"ABe\"");
+	ITP_CHECK("(setat 'ABC 0 102)", "fBC");
+	ITP_CHECK("(setat 'ABC 0 \"g\")", "gBC");
+	ITP_CHECK("(setat 'ABC 0 'h)", "hBC");
 	ITP_CHECK("(getat 5 2)", "<Erro \"cannot apply getat to 5\">");
 	ITP_CHECK("(setat (list 1 2 3) 2)", "<Erro \"cannot apply setat to (1 2 3)\">");
+	ITP_CHECK("(setat \"ABC\" 1 '(1 . 2))", "<Erro \"cannot setat (1 . 2) to \"ABC\"\">");
 	ITP_CHECK("`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 			, "[1 2 3 4 5 6 7 8 9 10]");
 	ITP_CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)");

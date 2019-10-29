@@ -387,7 +387,7 @@ function getat ($vect, $idx)
 
 	if ($vect -is [symb])
 	{
-		return $vect.name[$idx];
+		return (new-object symb $vect.name[$idx]);
 	}
 
 	lthrow $erroid["Type"] ("cannot apply getat to " + (lprint $vect));
@@ -409,13 +409,43 @@ function setat ($vect, $idx, $val)
 
 	if ($vect -is [string])
 	{
-		$vect = $vect.substring(0, $idx) + $val + $vect.substring($idx + 1);
+		if (($val -is [int]) -or ($val -is [decimal]))
+		{
+			$vect = $vect.substring(0, $idx) + [char]$val + $vect.substring($idx + 1);
+		}
+		elseif ($val -is [string])
+		{
+			$vect = $vect.substring(0, $idx) + $val[0] + $vect.substring($idx + 1);
+		}
+		elseif ($val -is [symb])
+		{
+			$vect = $vect.substring(0, $idx) + $val.name[0] + $vect.substring($idx + 1);
+		}
+		else
+		{
+			lthrow $erroid["Type"] ("cannot setat " + (lprint $val) + " to " + (lprint $vect));
+		}
 		return $vect;
 	}
 
 	if ($vect -is [symb])
 	{
-		$vect.name[$idx] = $val;
+		if (($val -is [int]) -or ($val -is [decimal]))
+		{
+			$vect.name = $vect.name.substring(0, $idx) + [char]$val + $vect.name.substring($idx + 1);
+		}
+		elseif ($val -is [string])
+		{
+			$vect.name = $vect.name.substring(0, $idx) + $val[0] + $vect.name.substring($idx + 1);
+		}
+		elseif ($val -is [symb])
+		{
+			$vect.name = $vect.name.substring(0, $idx) + $val.name[0] + $vect.name.substring($idx + 1);
+		}
+		else
+		{
+			lthrow $erroid["Type"] ("cannot setat " + (lprint $val) + " to " + (lprint $vect));
+		}
 		return $vect;
 	}
 
