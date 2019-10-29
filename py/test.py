@@ -185,6 +185,7 @@ CHECK("(define v [1 2 3]) (getat v 2)", "3")
 CHECK("(define v [1 2 3]) (setat v 2 44) v", "[1 2 44]")
 CHECK("(eq (getat [1 nil 3] 1) nil)", "T")
 CHECK("(if (getat [1 nil 3] 1) 1 2)", "2")
+CHECK("(getat \"abcd\" 2)", "c")
 ECHECK("(getat 5 2)", ErroId.Type, "cannot apply getat to 5")
 ECHECK("(setat (list 1 2 3) 2 44)", ErroId.Type, "cannot apply setat to (1 2 3)")
 CHECK("`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"

@@ -42,24 +42,56 @@
 						   (append (tail-drop pred 1)
 								   (tail-drop then 1)
 								   (tail-drop else 1)
-								   (list (sprint "(" (back then) " if " (back pred)
-												 " else " (back else) ")")))))
+								   (list (sprint "(" (back else)
+												 " if isnil(" (back pred)
+												 ") else " (back then) ")")))))
+
+(define trans::py::expand-lambda-args
+  (! letrec ((expand-rec (lambda (rest syms binds)
+						   (! cond
+							  ((not rest) (list (reverse syms) binds)
+							   (atom rest) (list (reverse (cons (sprint "*" rest)
+																syms)) binds)
+							   (atom (car rest)) (expand-rec (cdr rest)
+															 (cons (sprint (car rest))
+																   syms)
+															 binds)
+							   t (! let ((lamarg (sprint "_sys_lamarg_" (length binds))))
+								  (expand-rec (cdr rest)
+											  (cons lamarg syms)
+											  (cons (list lamarg (car rest)) binds)))))))
+			 (bind-rec (lambda (sym tree acs)
+						 (! cond
+							((not tree) nil
+							 (atom tree) (list 
+										   (sprint tree " = " (join acs "(") "(" sym
+												   (str-times (length acs) ")")))
+							 t (append (bind-rec sym (car tree) (cons "car" acs))
+									   (bind-rec sym (cdr tree) (cons "cdr" acs))))))))
+	 (lambda (form)
+	   (! let (((syms binds) (expand-rec form)))
+		  (list (join syms ", ")
+				(apply append (cons (if (= "*" (strat (back syms) 0)) ())
+									(map (! fn (bind-rec (car $0) (cadr $0))) binds))))))))
 
 (! trans::py::regist lambda (! let ((lambda-name (trans::py::gen-lambda-name))
-									(lambda-body (trans::py::encode (nth args 1))))
-				   (append (list (sprint "def " lambda-name " ("
-										 (join (car args) ", ") "):"))
-						   (map trans::py::indent (tail-drop lambda-body 1))
-						   (list (trans::py::indent
-								   (sprint "return " (back lambda-body)))
-								 lambda-name))))
+									(lambda-body (trans::py::encode (nth args 1)))
+									(lambda-args (trans::py::expand-lambda-args
+												   (car args))))
+							   (append (list (sprint "def " lambda-name " ("
+													 (car lambda-args) "):"))
+									   (cadr lambda-args)
+									   (map trans::py::indent (tail-drop lambda-body 1))
+									   (list (trans::py::indent
+											   (sprint "return " (back lambda-body)))
+											 lambda-name))))
 
 (! trans::py::regist define (! let ((sym (car args))
 									(val (trans::py::encode (nth args 1))))
 							   (append (tail-drop val 1)
 									   (list (sprint "global " sym)
-											 (sprint sym " = " (back val)))
-									   (trans::py::encode `(quote ,sym)))))
+											 (sprint sym " = " (back val))
+											 (sprint "Symb(\"" sym "\")")))))
 (! trans::py::regist setq (! let ((sym (car args))
 								  (val (trans::py::encode (nth args 1))))
 							 (append (tail-drop val 1)
@@ -78,7 +110,8 @@
 (! trans::py::regist-mid and " and " t)
 (! trans::py::regist-mid or " or " nil)
 (! trans::py::regist quasiquote (trans::py::encode
-								  (mal::expand-quasiquote-proc (car args) env)))
+								  (list 'quote (mal::expand-quasiquote-proc
+												 (car args) env))))
 (! trans::py::regist environment (list "genv"))
 (! trans::py::regist ! (trans::py::encode
 						 (mal::expand-syntax-proc
@@ -102,14 +135,74 @@
    (apply append (map trans::py::encode args)))
 
 (! trans::py::regist list
-   (! let ((vals (map trans::py::encode args)))
-	  (append (apply append (map (! fn (tail-drop $0 1)) vals))
-			  (list (sprint "l(" (join (map back vals) ", ") ")")))))
+   (trans::py::encode-funcall '("l") (map trans::py::encode args)))
 
 (! trans::py::regist-mid + " + " 0)
 (! trans::py::regist-mid - " - " 0)
 (! trans::py::regist-mid * " * " 1)
-(! trans::py::regist-mid / " / " 1)
+(! trans::py::regist /
+   (trans::py::encode-funcall '("div") (map trans::py::encode args)))
+(! trans::py::regist %
+   (trans::py::encode-funcall '("mod") (map trans::py::encode args)))
+(! trans::py::regist >
+   (trans::py::encode-funcall '("gt") (map trans::py::encode args)))
+(! trans::py::regist >=
+   (trans::py::encode-funcall '("ge") (map trans::py::encode args)))
+(! trans::py::regist <
+   (trans::py::encode-funcall '("lt") (map trans::py::encode args)))
+(! trans::py::regist <=
+   (trans::py::encode-funcall '("le") (map trans::py::encode args)))
+(! trans::py::regist int
+   (trans::py::encode-funcall '("lint") (map trans::py::encode args)))
+(! trans::py::regist float
+   (trans::py::encode-funcall '("lfloat") (map trans::py::encode args)))
+(! trans::py::regist load
+   (trans::py::encode-funcall '("lload") (map trans::py::encode args)))
+(! trans::py::regist pushqueu
+   (! let ((q (trans::py::encode (car args)))
+		   (val (trans::py::encode (cadr args))))
+	  (append (tail-drop q 1)
+			  (tail-drop val 1)
+			  (list (sprint (back q) ".push(" (back val) ")")))))
+(! trans::py::regist popqueu
+   (! let ((q (trans::py::encode (car args))))
+	  (append (tail-drop q 1)
+			  (list (sprint (back q) ".pop()")))))
+(! trans::py::regist concqueu
+   (! let ((qa (trans::py::encode (car args)))
+		   (qb (trans::py::encode (cadr args))))
+	  (append (tail-drop qa 1)
+			  (tail-drop qb 1)
+			  (list (sprint (back qa) ".concat(" (back qb) ")")))))
+(! trans::py::regist to-list
+   (trans::py::encode-funcall '("to_list") (map trans::py::encode args)))
+(! trans::py::regist to-vect
+   (trans::py::encode-funcall '("to_vect") (map trans::py::encode args)))
+(! trans::py::regist to-queu
+   (trans::py::encode-funcall '("to_queu") (map trans::py::encode args)))
+(! trans::py::regist apply
+   (trans::py::encode-funcall '("lapply") (map trans::py::encode args)))
+(! trans::py::regist throw
+   (trans::py::encode-funcall '("lthrow") (map trans::py::encode args)))
+(! trans::py::regist empty
+   (trans::py::encode-funcall '("lempty") (map trans::py::encode args)))
+(! trans::py::regist print
+   (trans::py::encode-funcall '("llprint") (map trans::py::encode args)))
+(! trans::py::regist prin
+   (trans::py::encode-funcall '("llprin") (map trans::py::encode args)))
+(! trans::py::regist getc
+   (trans::py::encode-funcall '("lgetc") (map trans::py::encode args)))
+(! trans::py::regist type
+   (trans::py::encode-funcall '("ltype") (map trans::py::encode args)))
+(! trans::py::regist getat
+   (trans::py::encode-funcall '("lgetat") (map trans::py::encode args)))
+(! trans::py::regist setat
+   (trans::py::encode-funcall '("lsetat") (map trans::py::encode args)))
+(! trans::py::regist py (list (sprint (car args))))
+(! trans::py::regist import (list (sprint "import " (car args))))
+(! trans::py::regist -> (list (join (map sprint args) ".")))
+
+
 
 (define trans::py::replace-define
   (! letrec ((pick-define
@@ -124,6 +217,14 @@
 			   (map (! fn `(setq ,(nth $0 1) nil)) (pick-define expr))
 			   (list expr)))))
 
+; TODO 末尾呼出最適化
+(define trans::py::encode-funcall
+  (lambda (proc-codes args-codes)
+	(append (tail-drop proc-codes 1)
+			(apply append (map (! fn (tail-drop $0 1)) args-codes))
+			(list (sprint (back proc-codes) "("
+						  (join (map back args-codes) ", ") ")")))))
+
 (define trans::py::encode
   (! let ((var-counter 0))
 	 (lambda (expr)
@@ -135,13 +236,8 @@
 		   '<symb> (list (sprint expr))
 		   '<cons> (! aif (assocdr trans::py::env (car expr))
 					  (it (cdr expr) (environment))
-					  ; TODO 末尾呼出最適化
-					  (! let ((proc (trans::py::encode (car expr)))
-							  (args (map trans::py::encode (cdr expr))))
-						 (append (tail-drop proc 1)
-								 (apply append (map (! fn (tail-drop $0 1)) args))
-								 (list (sprint (back proc) "("
-											   (join (map back args) ", ") ")"))))))))))
+					  (trans::py::encode-funcall (trans::py::encode (car expr))
+												 (map trans::py::encode (cdr expr)))))))))
 
 (define trans::py::encodetop
   (lambda (expr)

@@ -192,6 +192,7 @@ check "(define v [1 2 3]) (getat v 2)" 3;
 check "(define v [1 2 3]) (setat v 2 44) v" (vect 1 2 44);
 check "(eq (getat [1 nil 3] 1) nil)" $t;
 check "(if (getat [1 nil 3] 1) 1 2)" 2;
+check "(getat `"abcd`" 2)" "c";
 echeck "(getat 5 2)" $erroid["Type"] "cannot apply getat to 5";
 echeck "(setat (list 1 2 3) 2 44)" $erroid["Type"] "cannot apply setat to (1 2 3)";
 check "``[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 ``(8 ,(* 3 3))) 10]" (vect 1 2 3 4 5 6 7 8 9 10);

@@ -183,6 +183,8 @@
 							obj (cons obj acc))))))
 		  (lambda (n obj) (times-rec n obj nil))))
 
+(define str-times (lambda (n str) (join (times n str) "")))
+
 (define take
   (! letrec
 		  ((take-rec
@@ -574,4 +576,18 @@
 				(syms (map (lambda (argk) (symbol (sprint "_fn_arg_" argk))) keynums))
 				(_form (replacing form (zip keys syms))))
 		  `(lambda ,syms ,_form)))))
+
+(define caar (lambda (o) (car (car o))))
+(define cadr (lambda (o) (car (cdr o))))
+(define cdar (lambda (o) (cdr (car o))))
+(define cddr (lambda (o) (cdr (cdr o))))
+
+(define caaar (lambda (o) (car (car (car o)))))
+(define caadr (lambda (o) (car (car (cdr o)))))
+(define cadar (lambda (o) (car (cdr (car o)))))
+(define caddr (lambda (o) (car (cdr (cdr o)))))
+(define cdaar (lambda (o) (cdr (car (car o)))))
+(define cdadr (lambda (o) (cdr (car (cdr o)))))
+(define cddar (lambda (o) (cdr (cdr (car o)))))
+(define cdddr (lambda (o) (cdr (cdr (cdr o)))))
 
