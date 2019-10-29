@@ -71,7 +71,10 @@
 	 (lambda (form)
 	   (! let (((syms binds) (expand-rec form)))
 		  (list (join syms ", ")
-				(apply append (cons (if (= "*" (strat (back syms) 0)) ())
+				(apply append (cons (if (= "*" (getat (back syms) 0))
+									  (! let* ((bsym (back syms)))
+										 (list (sprint (substr bsym 1 (length bsym))
+													   " = l(" bsym ")"))))
 									(map (! fn (bind-rec (car $0) (cadr $0))) binds))))))))
 
 (! trans::py::regist lambda (! let ((lambda-name (trans::py::gen-lambda-name))
@@ -80,7 +83,7 @@
 												   (car args))))
 							   (append (list (sprint "def " lambda-name " ("
 													 (car lambda-args) "):"))
-									   (cadr lambda-args)
+									   (map trans::py::indent (cadr lambda-args))
 									   (map trans::py::indent (tail-drop lambda-body 1))
 									   (list (trans::py::indent
 											   (sprint "return " (back lambda-body)))

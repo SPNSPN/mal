@@ -169,7 +169,8 @@
 			   (if coll
 				 (length-rec (cdr coll) (+ len 1))
 				 len))))
-		  (lambda (coll) (length-rec coll 0))))
+		  (lambda (coll) (length-rec (if (eq '<cons> (type coll))
+									   coll (to-list coll)) 0))))
 
 (define = equal)
 
@@ -509,6 +510,9 @@
 (define tail-take (lambda (coll n) (drop coll (- (length coll) n))))
 
 (define tail-drop (lambda (coll n) (take coll (- (length coll) n))))
+
+(define substr (lambda (str begin end)
+				 (join (map (! fn (getat str $0)) (range begin end)) "")))
 
 (define uniq
   (! letrec ((uniq-rec (lambda (rest uniqs)
