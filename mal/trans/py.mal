@@ -159,7 +159,7 @@
    (trans::py::encode-funcall '("lint") (map trans::py::encode args)))
 (! trans::py::regist float
    (trans::py::encode-funcall '("lfloat") (map trans::py::encode args)))
-(! trans::py::regist load
+(! trans::py::regist load ; TODO loadするファイルの内容もencodeするように変更
    (trans::py::encode-funcall '("lload") (map trans::py::encode args)))
 (! trans::py::regist pushqueu
    (! let ((q (trans::py::encode (car args)))
