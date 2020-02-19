@@ -1,4 +1,5 @@
 (load "mal/interpreter.mal")
+(load "mal/file.mal")
 
 (define trans::py::indent
   (lambda (line)
@@ -162,13 +163,11 @@
 (! trans::py::regist load ; TODO loadするファイルの内容もencodeするように変更
    (! let ((path (mal::eval (car args) (environment)))
 		   (code (trans::py::encode (car args))))
-	  (! let ((f (file path)
-			   lines nil))
-		 (do (load path)
-		   	 (open f)
-		   	 (setq lines (readlines f))
-			 (close f)
-			 lines))))
+	  (! let ((f (file::open path))
+			   (lines nil))
+		 (do ((setq lines (file::read f))
+			  (file::close f)
+			  lines)))))
 (! trans::py::regist pushqueu
    (! let ((q (trans::py::encode (car args)))
 		   (val (trans::py::encode (cadr args))))
