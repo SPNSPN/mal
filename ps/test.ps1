@@ -206,8 +206,9 @@ check "(setat 'ABC 0 'h)" (new-object symb hBC);
 echeck "(getat 5 2)" $erroid["Type"] "cannot apply getat to 5";
 echeck "(setat (list 1 2 3) 2 44)" $erroid["Type"] "cannot apply setat to (1 2 3)";
 echeck "(setat `"ABC`" 1 '(1 . 2))" $erroid["Type"] "cannot setat (1 . 2) to `"ABC`"";
-check "``[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 ``(8 ,(* 3 3))) 10]" (vect 1 2 3 4 5 6 7 8 9 10);
 check "(to-list `"a\nb\tc\0`")" (list 97 10 98 9 99 0);
+check "``[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 ``(8 ,(* 3 3))) 10]" (vect 1 2 3 4 5 6 7 8 9 10);
+check "(processor)" (new-object symb powershell);
 check "(load `"mal/test.mal`")" $nil;
 
 check "(reverse (list 1 2 3 4))" (list 4 3 2 1);

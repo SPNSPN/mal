@@ -1449,9 +1449,10 @@ int main (int argc, char **argv)
 	ITP_CHECK("(getat 5 2)", "<Erro \"cannot apply getat to 5\">");
 	ITP_CHECK("(setat (list 1 2 3) 2)", "<Erro \"cannot apply setat to (1 2 3)\">");
 	ITP_CHECK("(setat \"ABC\" 1 '(1 . 2))", "<Erro \"cannot setat (1 . 2) to \"ABC\"\">");
+	ITP_CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)");
 	ITP_CHECK("`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 			, "[1 2 3 4 5 6 7 8 9 10]");
-	ITP_CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)");
+	ITP_CHECK("(processor)", "c++");
 	ITP_CHECK("(load \"mal/test.mal\")", "NIL");
 
 

@@ -160,7 +160,15 @@
 (! trans::py::regist float
    (trans::py::encode-funcall '("lfloat") (map trans::py::encode args)))
 (! trans::py::regist load ; TODO loadするファイルの内容もencodeするように変更
-   (trans::py::encode-funcall '("lload") (map trans::py::encode args)))
+   (! let ((path (mal::eval (car args) (environment)))
+		   (code (trans::py::encode (car args))))
+	  (! let ((f (file path)
+			   lines nil))
+		 (do (load path)
+		   	 (open f)
+		   	 (setq lines (readlines f))
+			 (close f)
+			 lines))))
 (! trans::py::regist pushqueu
    (! let ((q (trans::py::encode (car args)))
 		   (val (trans::py::encode (cadr args))))

@@ -222,7 +222,7 @@
 (check "`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 	   [1 2 3 4 5 6 7 8 9 10])
 
-(! with derxi
+(! ns derxi
    (do
 	 ; (do nil nil nil)
 	 (vcheck (list ::nil

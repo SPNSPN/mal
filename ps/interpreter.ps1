@@ -452,6 +452,11 @@ function setat ($vect, $idx, $val)
 	lthrow $erroid["Type"] ("cannot apply setat to " + (lprint $vect));
 }
 
+function processor ()
+{
+	return new-object symb "powershell";
+}
+
 function seekenv ($env, $key)
 {
 	for ($rest = $env; -not (atom $rest); $rest = (cdr $rest))
@@ -1189,7 +1194,8 @@ regist_subr $genv { param($args_);
 regist_subr $genv { param($args_);
 	return (ltype (car $args_)); } "type";
 regist_subr $genv { param($args_); return (getat (car $args_) (car (cdr $args_))) } "getat";
-regist_subr $genv { param($args_);return (setat (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_)))); } "setat";
+regist_subr $genv { param($args_); return (setat (car $args_) (car (cdr $args_)) (car (cdr (cdr $args_)))); } "setat";
+regist_subr $genv { param($args_); return (processor); } "processor";
 regist_subr $genv { param($args_); return (getc); } "getc";
 
 

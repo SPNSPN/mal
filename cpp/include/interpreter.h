@@ -74,6 +74,7 @@ class Interpreter
 		Addr subr_tovect (Addr);
 		Addr subr_getat (Addr);
 		Addr subr_setat (Addr);
+		Addr subr_processor (Addr);
 		Addr subr_throw (Addr);
 		Addr subr_symbol (Addr);
 		Addr subr_queu (Addr);

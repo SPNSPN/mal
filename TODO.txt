@@ -1,4 +1,8 @@
-file handleを取得するsubr open
+型チェックしている関数を専用型関数に分解してlispから呼べるようにする、コンパイル時に最適化できるようにする
+getlines EOFまでreadし結果のlistを返す
+(! with (f (file "path.txt")) (getlines f))でopenとcloseを挿入するwithをmal/utilに追加
+py transでシンボル名のハイフンをアンダーバーに変換する
+subr exit
 ipythonみたいな対話環境
 py transの末尾呼出最適化
 定数畳み込み最適化
@@ -13,3 +17,5 @@ s式xml 動的HP
 s式mml
 自然言語生成 伺か
 malの名称つける
+time-stream open: タイマーの生成 write: 指定時間経過するまでsleepする read: 現在時刻を取得する
+lock-stream open: スレッドの生成 read: ロックの取得 write: ロックの開放

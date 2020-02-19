@@ -433,7 +433,7 @@
 					 (! aif (stof-rec (cdr clist) 0.0 0) (* -1.0 it) nil))
 				   (stof-rec clist 0.0 0))))))))
 
-(define with
+(define ns
   (lambda (name expr)
 	(! let ((typ (type expr)))
 	   (! cond
@@ -441,7 +441,7 @@
 									   (take (to-list expr) 2))
 							  (symbol (sprint name expr))
 							  expr)
-		   (eq '<cons> typ) (cons (with name (car expr)) (with name (cdr expr)))
+		   (eq '<cons> typ) (cons (ns name (car expr)) (ns name (cdr expr)))
 		   t expr)))))
 
 (define getline

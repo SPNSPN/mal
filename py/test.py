@@ -199,9 +199,10 @@ CHECK("(setat 'ABC 0 'h)", "hBC")
 ECHECK("(getat 5 2)", ErroId.Type, "cannot apply getat to 5")
 ECHECK("(setat (list 1 2 3) 2 44)", ErroId.Type, "cannot apply setat to (1 2 3)")
 ECHECK("(setat \"ABC\" 1 '(1 . 2))", ErroId.Type, "cannot setat (1 . 2) to \"ABC\"")
+CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)")
 CHECK("`[1 2 ,3 ,(+ 2 2) @(if (> 3 1) '(5 6) nil) @(cons 7 `(8 ,(* 3 3))) 10]"
 		, "[1 2 3 4 5 6 7 8 9 10]")
-CHECK("(to-list \"a\\nb\\tc\\0\")", "(97 10 98 9 99 0)")
+CHECK("(processor)", "python")
 CHECK("(load \"mal/test.mal\")", "NIL")
 
 CHECK("(reverse (list 1 2 3 4))", "(4 3 2 1)")

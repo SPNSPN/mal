@@ -298,6 +298,7 @@ def ltype (o):
 		return Symb("<queu>")
 	return nil
 
+
 genv = cons(nil, nil)
 
 def lif (env, args):
@@ -563,6 +564,9 @@ def lsetat (vect, idx, val):
 			raise Erro(ErroId.Type, "cannot setat {0} to {1}".format(lprint(val), lprint(vect)))
 		return vect
 	raise Erro(ErroId.Type, "cannot apply setat to {0}".format(lprint(vect)))
+
+def processor ():
+	return Symb("python")
 
 def lprint (expr):
 	dup = seek_dup(expr, nil, nil)
@@ -1092,6 +1096,7 @@ def initenv ():
 	ienv = cons(cons(Symb("type"), ltype), ienv)
 	ienv = cons(cons(Symb("getat"), lgetat), ienv)
 	ienv = cons(cons(Symb("setat"), lsetat), ienv)
+	ienv = cons(cons(Symb("processor"), processor), ienv)
 	ienv = cons(cons(Symb("if"), Spfm(lif, "if")), ienv)
 	ienv = cons(cons(Symb("lambda")
 				, Spfm((lambda env, args: Func(car(args), car(cdr(args)), env))
@@ -1113,8 +1118,7 @@ def initenv ():
 					, "!")), ienv)
 	ienv = cons(cons(Symb("py"), Spfm((lambda env, args: eval(car(args).name)), "py")), ienv)
 	ienv = cons(cons(Symb("import"), Spfm((lambda env, args:
-						importlib.import_module(car(args)))
-                                                , "import")), ienv)
+						importlib.import_module(car(args))), "import")), ienv)
 	ienv = cons(cons(Symb("->"), Spfm(attr, "->")), ienv)
 	ienv = cons(cons(Symb("do"), Spfm(ldo, "do")), ienv)
 	ienv = cons(cons(Symb("catch"), Spfm(lcatch, "catch")), ienv)
