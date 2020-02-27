@@ -1,6 +1,8 @@
 (load "mal/interpreter.mal")
 (load "mal/file.mal")
 
+(define trans::py::translated-self '())
+
 (define trans::py::indent
   (lambda (line)
 	(sprint "\t" line)))
@@ -72,8 +74,9 @@
 	 (lambda (form)
 	   (! let (((syms binds) (expand-rec form)))
 		  (list (join syms ", ")
-				(apply append (cons (if (= "*" (getat (back syms) 0))
-									  (! let* ((bsym (back syms)))
+				(apply append (cons (if (and (back syms)
+											 (= "*" (getat (back syms) 0)))
+									  (! let ((bsym (back syms)))
 										 (list (sprint (substr bsym 1 (length bsym))
 													   " = l(" bsym ")"))))
 									(map (! fn (bind-rec (car $0) (cadr $0))) binds))))))))
@@ -90,7 +93,7 @@
 											   (sprint "return " (back lambda-body)))
 											 lambda-name))))
 
-(! trans::py::regist define (! let ((sym (car args))
+(! trans::py::regist define (! let ((sym (trans::py::rename-symb (car args)))
 									(val (trans::py::encode (nth args 1))))
 							   (append (tail-drop val 1)
 									   (list (sprint "global " sym)
@@ -101,7 +104,20 @@
 							 (append (tail-drop val 1)
 									 (list (sprint sym " = " (back val))
 										   (string sym)))))
-(! trans::py::regist quote (list (sprint "car(lread(\"" (car args) "\"))")))
+;(! trans::py::regist quote (list (sprint "car(lread(\"" (car args) "\"))")))
+(define trans::py::encode-quote
+  (! letrec ((encode-quote-rec
+			   (lambda (expr-rec)
+				 (! case (type expr-rec)
+					('<cons> (! let ((codes (map encode-quote-rec expr-rec)))
+								(append
+								  (apply append (map (! fn (tail-drop $1 1)) codes))
+								  (list
+									(sprint "l(" (join (map back codes) ", ") ")"))))
+					 '<symb> (list (sprint "Symb(\"" expr-rec "\")"))
+					 t (list (sprint expr-rec)))))))
+	 (lambda (expr) (encode-quote-rec expr))))
+(! trans::py::regist quote (trans::py::encode-quote (car args)))
 (! trans::py::regist do (! let ((do-name (trans::py::gen-do-name))
 								(do-body (apply append (map trans::py::encode args))))
 						   (append (list (sprint "def " do-name " ():"))
@@ -113,13 +129,47 @@
 										 (sprint do-name "()")))))
 (! trans::py::regist-mid and " and " t)
 (! trans::py::regist-mid or " or " nil)
-(! trans::py::regist quasiquote (trans::py::encode
-								  (list 'quote (mal::expand-quasiquote-proc
-												 (car args) env))))
+(define trans::py::encode-quasiquote
+  (! letrec ((has-splicing
+			   (lambda (expr) (find-if (! fn (and (eq '<cons> (type $0))
+												  (eq 'splicing (car $0)))) expr)))
+			 (encode-quasiquote-rec
+			   (lambda (expr-rec)
+				 (! case (type expr-rec)
+					('<cons>
+					 (! cond
+						((has-splicing expr-rec)
+						 	(! let ((codes
+									  (map (! fn
+											  (if (and (eq '<cons> (type $0))
+													   (eq 'splicing (car $0)))
+												(trans::py::encode (cadr $0))
+												(! let ((code
+														  (encode-quasiquote-rec $0)))
+												   (append (tail-drop code 1)
+														   (list (sprint "l("
+																		 (back code)
+																		 ")"))))))
+										   expr-rec)))
+							   (append
+								 (apply append (map (! fn (tail-drop $0 1)) codes))
+								 (list (reduce (lambda (acc e)
+												 (sprint "append(" acc ", " e ")"))
+											   (map back codes) nil))))
+						 (eq 'unquote (car expr-rec))
+						 	(trans::py::encode (cadr expr-rec))
+						 t (! let ((codes (map encode-quasiquote-rec expr-rec)))
+							  (append
+								(apply append (map (! fn (tail-drop $0 1)) codes))
+								(list
+								  (sprint "l(" (join (map back codes) ", ") ")"))))))
+					 '<symb> (list (sprint "Symb(\"" expr-rec "\")"))
+					 t (list (sprint expr-rec)))))))
+	 (lambda (expr) (encode-quasiquote-rec expr))))
+(! trans::py::regist quasiquote (trans::py::encode-quasiquote (car args)))
 (! trans::py::regist environment (list "genv"))
 (! trans::py::regist ! (trans::py::encode
-						 (mal::expand-syntax-proc
-						   (car args) (cdr args) env)))
+						 (mal::expand-syntax-proc (car args) (cdr args) env)))
 (! trans::py::regist catch (! let ((ebody (trans::py::encode (car args))))
 							  (append (list "try:")
 									  (map trans::py::indent
@@ -161,13 +211,22 @@
 (! trans::py::regist float
    (trans::py::encode-funcall '("lfloat") (map trans::py::encode args)))
 (! trans::py::regist load ; TODO loadするファイルの内容もencodeするように変更
-   (! let ((path (mal::eval (car args) (environment)))
-		   (code (trans::py::encode (car args))))
-	  (! let ((f (file::open path))
-			   (lines nil))
-		 (do ((setq lines (file::read f))
-			  (file::close f)
-			  lines)))))
+   (! let ((path (trans::py::encode (car args))))
+	  (append (list (sprint "if not '" (trans::py::rename-symb 'trans::py::encodetop)
+							"' in globals():"))
+			  (map trans::py::indent trans::py::translated-self)
+			  (tail-drop path 1)
+			  (list (sprint trans::py::sys-var " = [" (back path) "]")
+					(sprint trans::py::sys-var ".append(open("
+							trans::py::sys-var "[0].py, mode = 'w'))")
+					(sprint trans::py::sys-var "[1].write("
+							(trans::py::rename-symb 'trans::py::encodetop)
+							"(" trans::py::sys-var "[0].py))")
+					(sprint trans::py::sys-var "[1].close()")
+					(sprint "for k, v in importlib.import_module("
+							trans::py::sys-var "[0].py):")
+					(trans::py::indent "globals()[k] = v")
+					"nil"))))
 (! trans::py::regist pushqueu
    (! let ((q (trans::py::encode (car args)))
 		   (val (trans::py::encode (cadr args))))
@@ -227,6 +286,17 @@
 			   (map (! fn `(setq ,(nth $0 1) nil)) (pick-define expr))
 			   (list expr)))))
 
+(define trans::py::rename-symb
+  (! let ((hyphen (car (to-list "-")))
+		  (colon (car (to-list ":")))
+		  (underbar (car (to-list "_"))))
+	 (lambda (symb)
+	   (symbol (map (lambda (c) (! case c
+								   (hyphen underbar
+									colon  underbar 
+									t c)))
+			(to-list symb))))))
+
 ; TODO 末尾呼出最適化
 (define trans::py::encode-funcall
   (lambda (proc-codes args-codes)
@@ -243,7 +313,7 @@
 		   '<inum> (list (sprint expr))
 		   '<fnum> (list (sprint expr))
 		   '<strn> (list (sprint "\"" expr "\""))
-		   '<symb> (list (sprint expr))
+		   '<symb> (list (sprint (trans::py::rename-symb expr)))
 		   '<cons> (! aif (assocdr trans::py::env (car expr))
 					  (it (cdr expr) (environment))
 					  (trans::py::encode-funcall (trans::py::encode (car expr))
