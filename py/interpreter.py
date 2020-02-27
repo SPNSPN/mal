@@ -7,7 +7,7 @@ import argparse
 
 _sys_var = None
 
-class NIL:
+class Nil:
 	def __bool__ (self):
 		return False
 
@@ -128,8 +128,10 @@ ErroId.__dict__["ArgsUnmatch"]      = 7
 ErroId.__dict__["UnEvaluatable"]    = 8
 ErroId.__dict__["FileNotFound"]     = 9
 
-nil = NIL()
+nil = Nil()
+NIL = nil
 t = Symb("T")
+T = t
 
 def cons (a, d):
 	return Cons(a, d)
@@ -164,7 +166,7 @@ def atom (o):
 	return t
 
 def isnil (o):
-	if isinstance(o, NIL):
+	if isinstance(o, Nil):
 		return t
 	return nil
 
@@ -290,7 +292,7 @@ def ltype (o):
 		return Symb("<inum>")
 	if isinstance(o, float):
 		return Symb("<fnum>")
-	if isinstance(o, NIL):
+	if isinstance(o, Nil):
 		return Symb("<nil>")
 	if isinstance(o, list):
 		return Symb("<vect>")
@@ -443,6 +445,9 @@ def lread (code):
 	tree = growth(tree, buff)
 	return reverse(tree)
 
+def lreadtop (code):
+	return cons(Symb("do"), lread(code))
+
 def leval (expr, env):
 	try:
 		while True:
@@ -492,7 +497,7 @@ def lthrow (eid, mess):
 	raise Erro(eid, mess)
 
 def lempty (coll):
-	if isinstance(coll, NIL):
+	if isinstance(coll, Nil):
 		return t
 	if isinstance(coll, list) or isinstance(coll, str):
 		if len(coll) < 1:
@@ -861,7 +866,7 @@ def last (o):
 		while not isnil(cdr(rest)):
 			rest = cdr(rest)
 		return rest
-	if isinstance(o, NIL):
+	if isinstance(o, Nil):
 		return nil
 	if isinstance(o, Queu):
 		return o.entr

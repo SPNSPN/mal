@@ -4,7 +4,7 @@ from interpreter import *
 def CHECK (code, succ):
 	sys.stdout.write("CHECK: \"{0}\" -> ".format(code))
 	sys.stdout.flush()
-	s = lprint(leval(cons(Symb("do"), lread(code)), genv))
+	s = lprint(leval(lreadtop(code), genv))
 	print(s)
 	if succ and s != succ:
 		print("Fail CHECK.")
