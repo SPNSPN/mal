@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Forms;
-using Mal;
+using Senva;
 
 class Program
 {
@@ -8,6 +8,6 @@ class Program
 	public static void Main (string[] args)
 	{
 		Application.EnableVisualStyles();
-		Application.Run(new Mal.Interpreter());
+		Application.Run(new Senva.Interpreter());
 	}
 }
