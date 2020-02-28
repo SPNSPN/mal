@@ -1,0 +1,597 @@
+(define cond
+  (lambda (form)
+	(if form
+	  (list (quote if)
+			(car form)
+			(car (cdr form))
+			(cond (cdr (cdr form))))
+	  nil)))
+
+(define case
+  (lambda (expr form)
+	((lambda (e)
+	   (if form
+		 `(if (or (eq ,(car form) t) (equal ,(car form) ,e))
+			,(car (cdr form))
+			,(case expr (cdr (cdr form))))
+		 nil))
+	 expr)))
+
+(define not (lambda (a) (if a nil t)))
+
+(define some
+  (lambda (pred coll)
+	(if coll
+	  (if (pred (car coll))
+		t
+		(some pred (cdr coll)))
+	  nil)))
+
+(define every
+  (lambda (pred coll)
+	(if coll
+	  (if (not (pred (car coll)))
+		nil
+		(every pred (cdr coll)))
+	  t)))
+
+(define copy
+  (lambda (coll)
+	(if (atom coll)
+	  coll
+	  (cons (copy (car coll)) (copy (cdr coll))))))
+
+(define zip
+  (lambda (colla collb)
+	(if (and colla collb)
+	  (cons (cons (car colla) (car collb))
+			(zip (cdr colla) (cdr collb)))
+	  nil)))
+
+((lambda (reverse-rec)
+   (do (setq reverse-rec
+			 (lambda (coll rcoll)
+			   (if coll
+				 (reverse-rec (cdr coll)
+							  (cons (car coll) rcoll))
+				 rcoll)))
+	   (define reverse
+		 (lambda (coll)
+		   (reverse-rec coll nil)))))
+ nil)
+
+(define map
+  (lambda (func coll)
+	(if coll
+	  (cons (func (car coll)) (map func (cdr coll)))
+	  nil)))
+
+(define reduce
+  (lambda (func coll val)
+	(if coll (reduce func (cdr coll) (func val (car coll))) val)))
+
+((lambda (append1-rec)
+   (do (setq append1-rec
+			 (lambda (rcolla collb)
+			   (if rcolla
+				 (append1-rec (cdr rcolla)
+							 (cons (car rcolla) collb))
+				 collb)))
+	   (define append1
+		 (lambda (colla collb)
+		   (append1-rec (reverse colla) collb)))))
+ nil)
+
+(define append
+  (lambda colls
+	(reduce (lambda (acc e) (append1 e acc)) (reverse colls) nil)))
+
+(define mapcat
+  (lambda (func coll)
+	(if coll
+	  (append1 (func (car coll)) (mapcat func (cdr coll)))
+	  nil)))
+
+;(define map ; TODO 複数リストを受け取るmap
+;  (lambda (func . colls)
+;	()))
+
+(define let
+  (lambda (form expr)
+	(cons (list (quote lambda) (map car form) expr)
+		  (map (lambda (e) (car (cdr e))) form))))
+
+(define letrec
+  (lambda (form expr)
+	(cons (list (quote lambda) (map car form)
+				(cons (quote do)
+					  (append1
+						(map (lambda (e)
+							   (list (quote setq)
+									 (car e)
+									 (car (cdr e))))
+							 form)
+						(list expr))))
+		  (map (lambda (e) nil) form))))
+
+(define let*
+  (! letrec
+		  ((let*-rec (lambda (targs rargs expr)
+					   (if targs
+						 (list (list (quote lambda)
+									 (list (car targs))
+									 (let*-rec (cdr targs)
+											   (cdr rargs)
+											   expr))
+							   (car rargs))
+						 expr))))
+		  (lambda (form expr)
+			(let*-rec (map car form)
+					  (map (lambda (e)
+							 (car (cdr e)))
+						   form)
+					  expr))))
+
+(define nth
+  (lambda (coll n)
+	(if coll
+	  (if (> n 0)
+		(nth (cdr coll) (- n 1))
+		(car coll))
+	  nil)))
+
+(define setnth
+  (lambda (coll n val)
+	(if coll
+	  (if (> n 0)
+		(setnth (cdr coll) (- n 1) val)
+		(rplaca coll val))
+	  nil)))
+
+(define updatenth
+  (lambda (coll n val)
+	(if coll
+	  (if (> n 0)
+		(cons (car coll) (updatenth (cdr coll) (- n 1) val))
+		(cons val (cdr coll)))
+	  nil)))
+
+(define updatenth-in
+  (lambda (coll ns val)
+	(if ns
+	  (updatenth coll (car ns) (updatenth-in (nth coll (car ns)) (cdr ns) val))
+	  val))) ; TODO
+
+(define length
+  (! letrec
+		  ((length-rec
+			 (lambda (coll len)
+			   (if coll
+				 (length-rec (cdr coll) (+ len 1))
+				 len))))
+		  (lambda (coll) (length-rec (if (eq '<cons> (type coll))
+									   coll (to-list coll)) 0))))
+
+(define = equal)
+
+(define times
+  (! letrec
+		  ((times-rec
+			 (lambda (n obj acc)
+			   (if (< n 1)
+				 acc
+				 (times-rec (- n 1)
+							obj (cons obj acc))))))
+		  (lambda (n obj) (times-rec n obj nil))))
+
+(define str-times (lambda (n str) (join (times n str) "")))
+
+(define take
+  (! letrec
+		  ((take-rec
+			 (lambda (coll n acc)
+			   (if (< n 1)
+				 (reverse acc)
+				 (take-rec (cdr coll)
+						   (- n 1)
+						   (cons (car coll) acc))))))
+		  (lambda (coll n) (take-rec coll n nil))))
+
+(define drop
+  (lambda (coll n)
+	(if coll
+	  (if (< n 1)
+		coll
+		(drop (cdr coll) (- n 1)))
+	  nil)))
+
+(define tee
+  (lambda (expr)
+	(do (print expr) expr)))
+
+(define find-if
+  (lambda (pred coll)
+	(if coll
+	  (if (pred (car coll))
+		(car coll)
+		(find-if pred (cdr coll)))
+	  nil)))
+
+(define find-if-idx
+  (! letrec
+		  ((find-if-idx-rec
+			 (lambda (pred coll idx)
+			   (if coll
+				 (if (pred (car coll))
+				   idx
+				   (find-if-idx-rec pred
+									(cdr coll)
+									(+ idx 1)))
+				 nil))))
+		  (lambda (pred coll)
+			(find-if-idx-rec pred coll 0))))
+
+(define find
+  (lambda (val coll)
+	(if coll
+	  (if (equal val (car coll))
+		val
+		(find val (cdr coll)))
+	  nil)))
+
+(define remove-if
+  (lambda (pred coll)
+	(if coll
+	  (if (pred (car coll))
+		(remove-if (cdr coll))
+		(cons (car coll) (remove-if (cdr coll))))
+	  nil)))
+
+(define remove
+  (lambda (val coll)
+	(remove-if (lambda (e) (equal val e)) coll)))
+
+(define assoc
+  (lambda (alist key)
+	(find-if (lambda (e) (equal key (car e)))
+				  alist)))
+
+(define assocdr
+  (lambda (alist key)
+	(cdr (assoc alist key))))
+
+(define update
+  (lambda (alist key val)
+	(! let ((idx (find-if-idx
+						(lambda (e) (equal key (car e)))
+						alist)))
+			(if idx
+			  (cons (cons key val)
+					(append1 (take alist idx)
+					  (drop alist (+ idx 1))))
+			  (cons (cons key val) alist)))))
+
+(define find-if-drop
+  (lambda (pred coll)
+	(if coll
+	  (if (pred (car coll))
+		(cdr coll)
+		(find-if-drop pred (cdr coll)))
+	  nil)))
+
+(define split-idx
+  (! letrec
+		  ((split-rec
+			 (lambda (coll n acc)
+			   (if (< n 1)
+				 (list (reverse acc) coll)
+				 (split-rec (cdr coll)
+						   (- n 1)
+						   (cons (car coll) acc))))))
+		  (lambda (coll n) (split-rec coll n nil))))
+
+(define split-if
+  (! letrec ((split-if-rec
+			   (lambda (coll pred res-head res-tail)
+				 (if coll
+				   (if (pred (car coll))
+					 (split-if-rec (cdr coll) pred nil (cons (reverse res-head) res-tail))
+					 (split-if-rec (cdr coll) pred (cons (car coll) res-head) res-tail))
+				   (reverse (cons (reverse res-head) res-tail))))))
+	 (lambda (coll pred)
+	   (split-if-rec coll pred nil nil))))
+
+(define range
+  (! letrec
+		  ((range-rec
+			 (lambda (b e st acc)
+			   (if (equal b e)
+				 (cons b acc)
+				 (range-rec b (+ e st) st
+							(cons e acc))))))
+		  (lambda (begin end)
+			(! cond
+			  ((< begin end) (range-rec begin (- end 1) -1 nil)
+			   (> begin end) (range-rec begin (+ end 1) 1 nil)
+			   t nil)))))
+
+(define max-in
+  (! letrec ((max-in-rec
+			   (lambda (n rest)
+				 (if rest
+				   (max-in-rec (if (> n (car rest))
+							 n
+							 (car rest)) (cdr rest)) 
+				   n))))
+	 (lambda (coll) (max-in-rec (car coll) (cdr coll)))))
+
+(define min-in
+  (! letrec ((min-in-rec
+			   (lambda (n rest)
+				 (if rest
+				   (min-in-rec (if (< n (car rest))
+							 n
+							 (car rest)) (cdr rest)) 
+				   n))))
+	 (lambda (coll) (min-in-rec (car coll) (cdr coll)))))
+
+(define max
+  (lambda coll (max-in coll)))
+
+(define min
+  (lambda coll (min-in coll)))
+
+(define skip
+  (lambda (coll n)
+	(append1 (take coll n) (drop coll (+ 1 n)))))
+
+(define gensym
+  (! let ((id 0))
+		  (lambda ()
+			(do (setq id (+ id 1))
+			    (symbol (sprint "gensym::" id))))))
+
+(define push
+  (lambda (c val)
+	`(do (setq ,c (cons ,val ,c))
+	    ,c)))
+
+(define pop
+  (lambda (c)
+	(! let ((e (gensym)))
+	   `(! let ((,e (car ,c)))
+		   (do (setq ,c (cdr ,c))
+			 ,e)))))
+
+(define string
+  (lambda (s)
+	(sprint (symbol s))))
+
+(define defclass
+  (lambda (class-name . records)
+	`(! let (,records)
+		(define ,class-name (lambda () (lambda (key)
+										 (car (assocdr records key))))))))
+
+(define aif
+  (lambda (pred then els)
+	`(! let ((it ,pred))
+			 (if it
+			   ,then
+			   ,els))))
+
+(define acond
+  (lambda (form)
+	(if form
+	  `(! aif ,(car form) ,(car (cdr form)) ,(acond (cdr (cdr form))))
+	  nil)))
+
+(define keep
+  (lambda (func coll)
+	(if coll
+	  (! aif (func (car coll))
+		(cons it (keep func (cdr coll)))
+		(keep func (cdr coll)))
+	  nil)))
+
+(! let ((minus (car (to-list "-")))
+		(ofst (car (to-list "0")))
+		(dot (car (to-list ".")))
+		(digits (to-list "0123456789")))
+   (! letrec ((stoi-rec
+				(lambda (clist acc)
+				  (if clist
+					(if (find (car clist) digits)
+					  (stoi-rec (cdr clist)
+								(+ (- (car clist) ofst) (* 10 acc)))
+					  nil)
+					acc)))
+			  (stof-rec
+				(lambda (clist acc scale)
+				  (if clist
+					(! acond
+					   ((equal dot (car clist))
+							(stof-rec (cdr clist) acc 1)
+						(find (car clist) digits)
+							(stof-rec (cdr clist)
+									  (+ (* 10 acc) (- (car clist) ofst))
+									  (* 10 scale))
+						t nil))
+					(/ (float acc) (max 1.0 (float scale)))))))
+	  (do (define stoi
+			(lambda (s)
+			  (! let ((clist (to-list s)))
+				 (if (equal minus (car clist))
+				   (if (cdr clist) (! aif (stoi-rec (cdr clist) 0)
+									  (* -1 it) nil))
+				   (stoi-rec clist 0)))))
+		  (define stof
+			(lambda (s)
+			  (! let ((clist (to-list s)))
+				 (if (equal minus (car clist))
+				   (if (cdr clist)
+					 (! aif (stof-rec (cdr clist) 0.0 0) (* -1.0 it) nil))
+				   (stof-rec clist 0.0 0))))))))
+
+(define ns
+  (lambda (name expr)
+	(! let ((typ (type expr)))
+	   (! cond
+		  ((eq '<symb> typ) (if (equal (to-list "::") 
+									   (take (to-list expr) 2))
+							  (symbol (sprint name expr))
+							  expr)
+		   (eq '<cons> typ) (cons (ns name (car expr)) (ns name (cdr expr)))
+		   t expr)))))
+
+(define getline
+  (! letrec ((getline-rec
+			   (lambda (q)
+				 (! let ((c (getc)))
+					(if (equal -1 c)
+					  (if (empty q)
+						nil
+						(string q))
+					  (if (equal 10 c)
+						(string q)
+						(getline-rec (pushqueu q c))))))))
+	 (lambda ()
+	   (getline-rec (queu)))))
+
+(define purelistp
+  (lambda (obj)
+	(not (cdr (last obj)))))
+
+(define uppercase-p
+  (! let ((A (- (car (to-list "A")) 1))
+		  (Z (+ (car (to-list "Z")) 1)))
+	 (lambda (str)
+	   (! let ((c (car (to-list str))))
+		  (and (< A c) (< c Z))))))
+
+(define incf
+  (lambda (var)
+	`(do (setq var (+ var 1)) var)))
+
+(define decf
+  (lambda (var)
+	`(do (setq var (- var 1)) var)))
+
+(define split
+  (! letrec ((split-rec
+			   (lambda (rest sl sllen res-head res-tail)
+				 (if rest
+				   (if (equal (take rest sllen) sl)
+					 (split-rec (drop rest sllen) sl sllen nil (cons (string (reverse res-head)) res-tail))
+					 (split-rec (cdr rest) sl sllen (cons (car rest) res-head) res-tail))
+				   (reverse (cons (string (reverse res-head)) res-tail))))))
+	 (lambda (str s) (split-rec (to-list str) (to-list s) (length (to-list s)) nil nil))))
+
+(define join
+  (! letrec ((join-rec
+			   (lambda (rest s str)
+				 (if rest
+				   (join-rec (cdr rest) s (sprint str s (car rest)))
+				   str))))
+	 (lambda (coll s)
+	   (if coll (join-rec (cdr coll) s (car coll)) ""))))
+
+(define make-list
+  (! letrec ((make-list-rec
+			   (lambda (n v res)
+				 (if (< n 1)
+				   res
+				   (make-list-rec (- n 1) v (cons v res))))))
+	 (lambda (len val)
+	   (make-list-rec len val nil))))
+
+(define back (lambda (coll) (car (last coll))))
+
+(define tail-take (lambda (coll n) (drop coll (- (length coll) n))))
+
+(define tail-drop (lambda (coll n) (take coll (- (length coll) n))))
+
+(define substr (lambda (str begin end)
+				 (join (map (! fn (getat str $0)) (range begin end)) "")))
+
+(define uniq
+  (! letrec ((uniq-rec (lambda (rest uniqs)
+						 (if rest
+						   (uniq-rec (cdr rest) (if (find (car rest) uniqs)
+												  uniqs
+												  (cons (car rest) uniqs)))
+						   uniqs))))
+	 (lambda (coll)
+	   (uniq-rec coll nil))))
+
+; memo merge sort
+(define sort
+  (! letrec ((divide
+			   (lambda (coll n divided)
+					(if (> n 0)
+					  (divide (cdr coll) (- n 1) (cons (car coll) divided))
+					  (cons divided coll))))
+			 (merge
+			   (lambda (a b cmp acc)
+				 (if a
+				   (if b
+					 (if (cmp (car a) (car b))
+					   (merge (cdr a) b cmp (pushqueu acc (car a)))
+					   (merge a (cdr b) cmp (pushqueu acc (car b))))
+					 (to-list (concqueu acc (to-queu a))))
+				   (to-list (concqueu acc (to-queu b))))))
+			 (sort-rec
+			   (lambda (coll cmp)
+				 (! let ((len (length coll)))
+					(! cond
+					   ((< len 2) coll
+						(= len 2) (merge (list (car coll)) (cdr coll) cmp (queu))
+						t (! let (((a . b) (divide coll (/ len 2) ())))
+							 (merge (sort-rec a cmp) (sort-rec b cmp) cmp (queu)))))))))
+	 (lambda (coll cmp)
+	   (sort-rec coll cmp))))
+
+(define flatten
+  (lambda (coll)
+	(! cond
+	   ((not coll) nil
+		(atom coll) (list coll)
+		t (append (flatten (car coll)) (flatten (cdr coll)))))))
+
+(define replacing
+  (lambda (form alist)
+	(! cond
+	   ((not form) nil
+		(atom form) (! aif (assocdr alist form) it form)
+		t (cons (replacing (car form) alist)
+				 (replacing (cdr form) alist))))))
+
+(define fn
+  (! let ((dollar (car (to-list "$"))))
+	 (lambda (form)
+	   (! let* ((keynums (sort (uniq (keep (lambda (v)
+										  (if (eq '<symb> (type v))
+											(! let ((vv (to-list v)))
+											   (if (= dollar (car vv))
+												 (stoi (string (cdr vv)))))))
+										(flatten form)))
+							<))
+				(keys (map (lambda (n) (symbol (sprint "$" n))) keynums))
+				(syms (map (lambda (argk) (symbol (sprint "_fn_arg_" argk))) keynums))
+				(_form (replacing form (zip keys syms))))
+		  `(lambda ,syms ,_form)))))
+
+(define caar (lambda (o) (car (car o))))
+(define cadr (lambda (o) (car (cdr o))))
+(define cdar (lambda (o) (cdr (car o))))
+(define cddr (lambda (o) (cdr (cdr o))))
+
+(define caaar (lambda (o) (car (car (car o)))))
+(define caadr (lambda (o) (car (car (cdr o)))))
+(define cadar (lambda (o) (car (cdr (car o)))))
+(define caddr (lambda (o) (car (cdr (cdr o)))))
+(define cdaar (lambda (o) (cdr (car (car o)))))
+(define cdadr (lambda (o) (cdr (car (cdr o)))))
+(define cddar (lambda (o) (cdr (cdr (car o)))))
+(define cdddr (lambda (o) (cdr (cdr (cdr o)))))
+

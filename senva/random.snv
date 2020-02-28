@@ -1,0 +1,20 @@
+(load "senva/util.snv")
+
+(define random::x 1)
+(define random::a 1664525)
+(define random::c 1013904223)
+(define random::m 2147483647)
+
+(define random::set-seed
+  (lambda (n)
+	(setq random::x n)))
+
+(define random::randomf
+  (lambda () (setq random::x (% (+ (* random::x random::a) random::c) random::m))))
+
+(define random::randint
+  (lambda (begin end)
+	(! let ((low (min begin end))
+			(high (max begin end)))
+	   (do (random::randomf)
+		   (+ (% random::x (- high low)) low)))))

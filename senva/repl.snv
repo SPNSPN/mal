@@ -1,0 +1,9 @@
+(load "senva/interpreter.snv")
+
+(define senva::repl
+  (lambda ()
+	(do (prin "isenva> ")
+	    (! aif (getline)
+		   (do (print (senva::eval (senva::readtop it) (environment)))
+			 (senva::repl))
+		   nil)))) ; TODO

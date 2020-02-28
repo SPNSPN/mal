@@ -1,0 +1,9 @@
+(load "senva/befunge/befunge.snv")
+
+(! letrec ((rec (lambda (line reads)
+				  (if line
+					(rec (getline) (pushqueu reads line))
+					(do (befunge::eval (befunge::read (join (to-list reads) "\n")))
+					  	nil)))))
+  (rec (getline) (queu)))
+

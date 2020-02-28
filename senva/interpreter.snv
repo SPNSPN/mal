@@ -1,0 +1,416 @@
+(load "senva/util.snv")
+
+(define senva::error::full-memory        0)
+(define senva::error::unknown-opcode     1)
+(define senva::error::out-of-environment 2)
+(define senva::error::type               3)
+(define senva::error::symbol             4)
+(define senva::error::syntax             5)
+(define senva::error::un-callable        6)
+(define senva::error::args-unmatch       7)
+(define senva::error::un-evaluatable     8)
+(define senva::error::file-not-found     9)
+
+(! let
+   ((clist (to-list "()'\"`,@.[]; \\\a\b\f\n\r\t\v\0")))
+   (do
+	 (define senva::o-paren   (nth clist 0))
+	 (define senva::c-paren   (nth clist 1))
+	 (define senva::s-quote   (nth clist 2))
+	 (define senva::d-quote   (nth clist 3))
+	 (define senva::b-quote   (nth clist 4))
+	 (define senva::camma     (nth clist 5))
+	 (define senva::atmark    (nth clist 6))
+	 (define senva::period    (nth clist 7))
+	 (define senva::o-bracket (nth clist 8))
+	 (define senva::c-bracket (nth clist 9))
+	 (define senva::semicolon (nth clist 10))
+	 (define senva::space     (nth clist 11))
+	 (define senva::backslash (nth clist 12))
+	 (define senva::alert     (nth clist 13))
+	 (define senva::backspace (nth clist 14))
+	 (define senva::pagefeed  (nth clist 15))
+	 (define senva::newline   (nth clist 16))
+	 (define senva::c-return  (nth clist 17))
+	 (define senva::tab       (nth clist 18))
+	 (define senva::v-tab     (nth clist 19))
+	 (define senva::eol       (nth clist 20))
+	 ))
+
+(define senva::+readmacros+ nil)
+
+(define senva::defreadmacro
+  (lambda (c body)
+	`(! push senva::+readmacros+ (cons ,c (lambda (code tree wraps buf) ,body)))))
+
+(! senva::defreadmacro senva::o-paren
+   (! let ((co (senva::find-co-paren code)))
+	  (cons (drop code (+ 1 co))
+			((lambda ((ntree nwraps nbuf))
+			   (senva::growth ntree nwraps (senva::read (take code co)) (queu)))
+			 (senva::growth-from-buf tree wraps buf)))))
+
+(! senva::defreadmacro senva::c-paren
+   (throw senva::error::syntax "found excess close parenthesis."))
+
+(! senva::defreadmacro senva::d-quote
+   (! let (((str restcode) (senva::take-string code (queu)))
+		   ((ntree nwraps nbuf) (senva::growth-from-buf tree wraps buf)))
+	  (list restcode (pushqueu ntree str) nwraps nbuf)))
+
+(! senva::defreadmacro senva::s-quote
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'quote nwraps) nbuf))
+		  (senva::growth-from-buf tree wraps buf))))
+
+(! senva::defreadmacro senva::b-quote
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'quasiquote nwraps) nbuf))
+		  (senva::growth-from-buf tree wraps buf))))
+
+(! senva::defreadmacro senva::camma
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'unquote nwraps) nbuf))
+		  (senva::growth-from-buf tree wraps buf))))
+
+(! senva::defreadmacro senva::atmark
+   (cons code
+		 ((lambda ((ntree nwraps nbuf))
+			(list ntree (cons 'splicing nwraps) nbuf))
+		  (senva::growth-from-buf tree wraps buf))))
+
+(! senva::defreadmacro senva::period
+   (if (empty buf)
+	 (do (rplacd (last tree) (car (senva::read code)))
+	   	 (list nil tree nil (queu)))
+	 (list code tree wraps (pushqueu buf senva::period))))
+
+(! senva::defreadmacro senva::o-bracket
+   (! let ((co (senva::find-co-bracket code)))
+	  (cons (drop code (+ 1 co))
+			((lambda ((ntree nwraps nbuf))
+			   (if nwraps
+				 (senva::growth ntree
+							  nil
+							  (list 'to-vect
+									(reduce (lambda (v e) (list e v))
+											wraps (senva::read (take code co))))
+							  (queu))
+				 (senva::growth ntree nil
+							  (cons 'vect (senva::read (take code co)))
+							  (queu))))
+			 (senva::growth-from-buf tree wraps buf)))))
+
+(! senva::defreadmacro senva::c-bracket
+   (throw senva::error::syntax "found excess close bracket."))
+
+(! senva::defreadmacro senva::semicolon
+   (! letrec ((skip-comment
+				(lambda (rest)
+				  (if rest
+					(if (equal senva::newline (car rest))
+					  (cdr rest)
+					  (skip-comment (cdr rest)))
+					nil))))
+	  (cons (skip-comment code)
+			(senva::growth-from-buf tree wraps buf))))
+
+(! senva::defreadmacro senva::space
+   (cons code (senva::growth-from-buf tree wraps  buf)))
+
+(! senva::defreadmacro senva::tab
+   (cons code (senva::growth-from-buf tree wraps  buf)))
+
+(! senva::defreadmacro senva::newline
+   (cons code (senva::growth-from-buf tree wraps  buf)))
+
+(define senva::find-co-paren
+  (! letrec ((find-co-paren-rec
+			   (lambda (code idx layer strflg)
+				 (if (< 0 layer)
+				   (if code
+					 (! cond
+						((equal senva::backslash (car code))
+						 	 (find-co-paren-rec (cdr (cdr code))
+												(+ 2 idx)
+												layer
+												strflg)
+						 (equal senva::d-quote (car code))
+							 (find-co-paren-rec (cdr code)
+												(+ 1 idx)
+												layer
+												(not strflg))
+						(and (not strflg) (equal senva::o-paren (car code)))
+							(find-co-paren-rec (cdr code)
+											   (+ 1 idx)
+											   (+ 1 layer)
+											   nil)
+						(and (not strflg) (equal senva::c-paren (car code)))
+							(find-co-paren-rec (cdr code)
+											   (+ 1 idx)
+											   (- layer 1)
+											   nil)
+						t (find-co-paren-rec (cdr code)
+											 (+ 1 idx)
+											 layer
+											 strflg)))
+					 (throw senva::error::syntax
+							"not found close parenthesis."))
+				   idx))))
+	 (lambda (code)
+	   (find-co-paren-rec code -1 1 nil))))
+
+(define senva::find-co-bracket
+  (! letrec ((find-co-bracket-rec
+			   (lambda (code idx layer strflg)
+				 (if (< 0 layer)
+				   (if code
+					 (! cond
+						((equal senva::backslash (car code))
+						 	 (find-co-paren-rec (cdr (cdr code))
+												(+ 2 idx)
+												layer
+												strflg)
+						(equal senva::d-quote (car code))
+							 (find-co-bracket-rec (cdr code)
+												(+ 1 idx)
+												layer
+												(not strflg))
+						(and (not strflg) (equal senva::o-bracket (car code)))
+							(find-co-bracket-rec (cdr code)
+											   (+ 1 idx)
+											   (+ 1 layer)
+											   nil)
+						(and (not strflg) (equal senva::c-bracket (car code)))
+							(find-co-bracket-rec (cdr code)
+											   (+ 1 idx)
+											   (- layer 1)
+											   nil)
+						t (find-co-bracket-rec (cdr code)
+											 (+ 1 idx)
+											 layer
+											 strflg)))
+					 (throw senva::error::syntax "not found close bracket."))
+				   idx))))
+	 (lambda (code)
+	   (find-co-bracket-rec code -1 1 nil))))
+
+(define senva::take-string
+  (! let ((char-a (car (to-list "a")))
+		  (char-b (car (to-list "b")))
+		  (char-f (car (to-list "f")))
+		  (char-n (car (to-list "n")))
+		  (char-r (car (to-list "r")))
+		  (char-t (car (to-list "t")))
+		  (char-v (car (to-list "v")))
+		  (char-0 (car (to-list "0")))
+		  )
+	 (lambda (code buf)
+	   (if code
+		 (! cond
+			((equal senva::d-quote (car code)) (list (string buf) (cdr code))
+			 (equal senva::backslash (car code))
+			 (senva::take-string
+			   (cdr (cdr code))
+			   (pushqueu buf
+						  (! let ((c (car (cdr code))))
+							 (! cond ((equal char-a c) 7  ; \a
+								      (equal char-b c) 8  ; \b
+									  (equal char-f c) 12; \f
+									  (equal char-n c) 10; \n
+									  (equal char-r c) 13; \r
+									  (equal char-t c) 9 ; \t
+									  (equal char-v c) 11; \v
+									  (equal char-0 c) 0  ; \0
+									  t c)))))
+			 t (senva::take-string (cdr code) (pushqueu buf (car code)))))
+		 (throw senva::error::syntax "not found close double quote.")))))
+
+(define senva::growth
+  (lambda (tree wraps obj)
+	(list (pushqueu tree (reduce (lambda (v e) (list e v)) wraps obj))
+			   nil
+			   (queu))))
+
+(define senva::growth-from-buf
+  (! let ((read-tok
+			(lambda (tok)
+			  (! let ((stok (string tok)))
+				 (! acond
+					((or (equal stok "nil") (equal stok "NIL")) nil
+					 (stoi stok) it
+					 (stof stok) it
+					 t (symbol tok)))))))
+	 (lambda (tree wraps buf)
+	   (if (empty buf)
+		 (list tree wraps (queu))
+		 (senva::growth tree wraps (read-tok (to-list buf)))))))
+
+(define senva::seekenv
+  (lambda (env sym)
+	(if env
+	  (! aif (assoc (car env) sym)
+		 it
+		 (senva::seekenv (cdr env) sym))
+	  nil)))
+
+(define senva::mapeval
+  (lambda (coll env)
+	(if coll
+	  (cons (senva::eval (car coll) env) (senva::mapeval (cdr coll) env))
+	  nil)))
+
+(define senva::expand-quasiquote-proc
+  (lambda (expr env)
+	(! letrec ((expand-rec (lambda (rest)
+							 (if rest
+							   (if (and (not (atom (car rest)))
+										(eq 'splicing (car (car rest))))
+								 (append (senva::eval (car (cdr (car rest))) env)
+										 (expand-rec (cdr rest)))
+								 (cons (senva::expand-quasiquote-proc (car rest) env)
+									   (expand-rec (cdr rest))))))))
+	   (! cond ((atom expr) expr
+		   		(eq 'unquote (car expr)) (senva::eval (car (cdr expr)) env)
+		   		t (expand-rec expr))))))
+
+(define senva::expand-quasiquote-1
+  (lambda (expr env)
+	(if (atom expr)
+	  expr
+	  (if (eq (car expr) 'quasiquote)
+		(senva::expand-quasiquote-proc (car (cdr expr)) env)
+		(map (lambda (e) (senva::expand-quasiquote-1 e env)) expr)))))
+
+(define senva::expand-quasiquote
+  (lambda (expr env)
+	(! let ((eexpr (senva::expand-quasiquote-1 expr env)))
+	   (if (equal expr eexpr)
+		 expr
+		 (senva::expand-quasiquote eexpr env)))))
+
+(define senva::bind-tree
+  (lambda (treea treeb)
+	(if treea
+	  (if (atom treea)
+		(list (cons treea treeb))
+		(if (and (atom treeb) treeb)
+		  (throw senva::error::type
+				 (sprint "cannot bind: " treea " and " treeb))
+		  (catch (lambda (id m) (if (equal id senva::error::type)
+								  (throw senva::error::type
+										 (sprint "cannot bind: " treea " and " treeb))
+								  (throw id m)))
+				 (nconc (senva::bind-tree (car treea) (car treeb))
+						(senva::bind-tree (cdr treea) (cdr treeb)))))))))
+
+(define senva::read
+  (! letrec
+	 ((read-rec
+		(lambda ((code tree wraps buf))
+		  (if code
+			(! aif (assocdr senva::+readmacros+ (car code))
+			   (read-rec (it (cdr code) tree wraps buf))
+			   (read-rec (list (cdr code) tree wraps
+							   (pushqueu buf (car code)))))
+			(to-list (car (senva::growth-from-buf tree wraps buf)))))))
+	 (lambda (str) (read-rec (list (to-list str) (queu) nil (queu))))))
+
+(define senva::readtop
+  (lambda (str) (cons 'do (senva::read str))))
+
+(define senva::eval
+  (lambda (expr env)
+	(if (atom expr)
+	  (if (eq '<symb> (type expr))
+		(! aif (senva::seekenv env expr)
+		   (cdr it)
+		   (throw senva::error::symbol (sprint expr " is not defined.")))
+		expr)
+	  (! let ((proc (car expr))
+			  (args (cdr expr)))
+		 (! cond
+			((eq 'if proc) (if (senva::eval (car args) env)
+							 (senva::eval (car (cdr args)) env)
+							 (senva::eval (car (cdr (cdr args))) env))
+			 (eq 'quote proc) (car args)
+			 (eq 'lambda proc) (lambda largs
+								 (senva::eval (car (cdr args))
+											(cons (senva::bind-tree (car args) largs)
+												  env)))
+			 (eq '! proc) (senva::eval
+							(senva::expand-syntax-proc (car args) (cdr args) env)
+									 env)
+			 (eq 'define proc) (! let ((genv (last (environment))))
+								  (do (! aif (senva::seekenv genv (car args))
+										 (rplacd it (senva::eval (car (cdr args)) env))
+										 (rplaca genv
+												 (cons (cons (car args)
+															 (senva::eval (car (cdr args))
+																		env))
+													   (car genv))))
+									  (car args)))
+			 (eq 'setq proc) (! aif (senva::seekenv env (car args))
+								(cdr (rplacd it (senva::eval (car (cdr args)) env)))
+								(throw senva::error::symbol
+									   (sprint (car args) " is not defined.")))
+			 (eq 'do proc) (! letrec ((recur (lambda (rest)
+											   (if (cdr rest)
+												 (do (senva::eval (car rest) env)
+												     (recur (cdr rest)))
+												 (senva::eval (car rest) env)))))
+							  (if args (recur args) nil))
+			 (eq 'and proc) (! letrec ((recur (lambda (rest ret)
+												(if ret
+												  (if rest
+													(recur (cdr rest)
+														   (senva::eval (car rest) env))
+													ret)
+												  nil))))
+							   (recur args t))
+			 (eq 'or proc) (! letrec ((recur (lambda (rest ret)
+											   (if ret
+												 ret
+												 (if rest
+												   (recur (cdr rest)
+														  (senva::eval (car rest) env))
+												   ret)))))
+							  (recur args nil))
+			 (eq 'quasiquote proc) (senva::expand-quasiquote-proc (car args) env)
+			 (eq 'catch proc) (catch (lambda err
+									   (apply (senva::eval (car args) env) err))
+									 (senva::eval (car (cdr args)) env))
+			 (eq 'environment proc) env
+			 t (apply (senva::eval proc env) (senva::mapeval args env))))))))
+
+(define senva::expand-syntax-proc
+  (lambda (proc args env)
+	(apply (senva::eval proc env) args)))
+
+(define senva::expand-syntax-1
+  (lambda (expr env)
+	(if (atom expr)
+	  expr
+	  (if (eq (car expr) '!)
+		(senva::expand-syntax-proc (car (cdr expr)) (cdr (cdr expr)) env)
+		(map (lambda (e) (senva::expand-syntax-1 e env)) expr)))))
+
+(define senva::expand-syntax
+  (lambda (expr env)
+	(! let ((eexpr (senva::expand-syntax-1 expr env)))
+	   (if (equal expr eexpr)
+		 expr
+		 (senva::expand-syntax eexpr env)))))
+
+(define senva::repl
+  (lambda ()
+	(do (prin "msenva> ")
+	    (! aif (getline)
+		 (do (print (senva::eval (senva::readtop it) (environment)))
+		     (senva::repl))
+		 nil))))
+
+
