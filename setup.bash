@@ -2,8 +2,8 @@
 
 cd cpp
 mkdir -p build
-ln -s ../mal .
+ln -s ../senva .
 cd ../py
-ln -s ../mal .
+ln -s ../senva .
 cd ../ps
-cp -r ../mal .
+cp -r ../senva .

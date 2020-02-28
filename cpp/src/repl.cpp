@@ -26,7 +26,7 @@ void parse_cmd_args (int argc, char **argv
 void repl (bool readonly)
 {
 	Interpreter itp;
-	std::string prompt = readonly ? "rdbg> " : "mal> ";
+	std::string prompt = readonly ? "rdbg> " : "senva> ";
 
 	std::cout << prompt << std::flush;
 	for (std::string line; std::getline(std::cin, line); )
@@ -44,7 +44,7 @@ void repl (bool readonly)
 void rep_file (const std::string &script, bool readonly)
 {
 	Interpreter itp;
-	std::string prompt = readonly ? "rdbg> " : "mal> ";
+	std::string prompt = readonly ? "rdbg> " : "senva> ";
 	
 	std::cout << prompt << std::flush;
 	std::fstream fin(script);
